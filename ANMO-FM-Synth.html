@@ -1,0 +1,1604 @@
+<!--
+[SOS - Sounds Of Seismic]
+https://sos.allshookup.org/
+Copyright (c) [02025] [SHOOK aka D.V.R.]
+
+SOS is free software: you can redistribute it and/or modify
+it under the terms of the MIT License (https://opensource.org/license/mit)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANMO ADVANCED SEISMIC FM SYNTHESIZER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ffd23f);
+            border-radius: 2px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; width: 100px; }
+            100% { opacity: 1; width: 300px; }
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-top: 15px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            min-height: 1.2em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: rgba(25, 25, 40, 0.9);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .control-panel:hover {
+            border-color: rgba(255, 107, 53, 0.6);
+            box-shadow: 0 12px 48px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(255, 107, 53, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 18px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-input {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .control-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.5);
+        }
+
+        .control-input::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.5);
+        }
+
+        .value-display {
+            font-size: 0.8rem;
+            color: #ffd23f;
+            float: right;
+            font-weight: bold;
+        }
+
+        .advanced-panel {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+            border: 2px solid rgba(255, 107, 53, 0.4);
+        }
+
+        .volume-panel {
+            background: linear-gradient(135deg, rgba(255, 210, 63, 0.1), rgba(255, 107, 53, 0.1));
+            border: 2px solid rgba(255, 210, 63, 0.4);
+        }
+
+        .bass-panel {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+            border: 2px solid rgba(255, 107, 53, 0.4);
+        }
+        
+        .fm-panel {
+            background: linear-gradient(135deg, rgba(247, 147, 30, 0.1), rgba(255, 210, 63, 0.1));
+            border: 2px solid rgba(247, 147, 30, 0.4);
+        }
+
+        .synthesis-mode {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .mode-button, .preset-button, .material-button {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .mode-button:hover, .preset-button:hover, .material-button:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+        }
+
+        .mode-button.active, .preset-button.active, .material-button.active {
+            background: rgba(255, 107, 53, 0.4);
+            border-color: #ff6b35;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .waveform-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .wave-button {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .wave-button:hover {
+            background: rgba(255, 107, 53, 0.2);
+        }
+
+        .wave-button.active {
+            background: rgba(255, 107, 53, 0.4);
+            color: #fff;
+            border-color: #ff6b35;
+        }
+
+        .main-controls {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .status-text {
+            margin-top: 20px;
+            min-height: 1.2em;
+            color: #aaa;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+        .status-text.error {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .main-button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 18px 45px;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        }
+
+        .main-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.5);
+        }
+
+        .main-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .main-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .main-button.stop {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .visualizer {
+            background: rgba(10, 10, 15, 0.9);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualizer canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .bass-indicator {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #ff6b35;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .voice-display {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #ffd23f;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 210, 63, 0.3);
+        }
+
+        .synthesis-display {
+            position: absolute;
+            bottom: 15px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #f7931e;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(247, 147, 30, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .main-button {
+                padding: 15px 35px;
+                font-size: 1.1rem;
+                margin: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ANMO ADVANCED SEISMIC FM SYNTHESIZER</h1>
+            <div class="subtitle">Albuquerque, New Mexico, USA - Advanced Geological Synthesis</div>
+        </div>
+
+        <div class="control-grid">
+            <!-- ENHANCED VOLUME CONTROL -->
+            <div class="control-panel volume-panel">
+                <div class="panel-title">Enhanced Volume Control</div>
+                <div class="control-group">
+                    <label class="control-label">Master Volume <span class="value-display" id="masterVolumeValue">0.8</span></label>
+                    <input type="range" class="control-input" id="masterVolume" min="0" max="2" value="0.8" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Synthesis Gain <span class="value-display" id="synthesisGainValue">1.2</span></label>
+                    <input type="range" class="control-input" id="synthesisGain" min="0" max="3" value="1.2" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Voice Level <span class="value-display" id="voiceLevelValue">0.8</span></label>
+                    <input type="range" class="control-input" id="voiceLevel" min="0" max="2" value="0.8" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Output Boost <span class="value-display" id="outputBoostValue">6 dB</span></label>
+                    <input type="range" class="control-input" id="outputBoost" min="0" max="20" value="6" step="0.1">
+                </div>
+            </div>
+
+            <!-- CRYSTALLINE GRANULAR ENGINE -->
+            <div class="control-panel advanced-panel">
+                <div class="panel-title">Crystalline Granular Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Crystal Size <span class="value-display" id="crystalSizeValue">25ms</span></label>
+                    <input type="range" class="control-input" id="crystalSize" min="0.1" max="500" value="25">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Density <span class="value-display" id="crystallineDensityValue">30/sec</span></label>
+                    <input type="range" class="control-input" id="crystallineDensity" min="1" max="200" value="30">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Spread <span class="value-display" id="crystallineSpreadValue">0.8</span></label>
+                    <input type="range" class="control-input" id="crystallineSpread" min="0" max="1" value="0.8" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Clarity <span class="value-display" id="crystallineClarityValue">0.6</span></label>
+                    <input type="range" class="control-input" id="crystallineClarity" min="0" max="1" value="0.6" step="0.01">
+                </div>
+            </div>
+
+            <!-- FM MONOCHROME SYNTHESIS -->
+            <div class="control-panel fm-panel">
+                <div class="panel-title">FM Monochrome Synthesis</div>
+                <div class="control-group">
+                    <label class="control-label">FM Frequency <span class="value-display" id="fmFrequencyValue">110 Hz</span></label>
+                    <input type="range" class="control-input" id="fmFrequency" min="40" max="400" value="110">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Modulation Depth <span class="value-display" id="modulationDepthValue">300</span></label>
+                    <input type="range" class="control-input" id="modulationDepth" min="0" max="1000" value="300">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">FM Ratio <span class="value-display" id="fmRatioValue">2.5</span></label>
+                    <input type="range" class="control-input" id="fmRatio" min="0.1" max="8" value="2.5" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Waveform</label>
+                    <div class="waveform-buttons">
+                        <button class="wave-button active" data-wave="sine">Sine</button>
+                        <button class="wave-button" data-wave="triangle">Tri</button>
+                        <button class="wave-button" data-wave="square">Sqr</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Attack Time <span class="value-display" id="attackTimeValue">0.01s</span></label>
+                    <input type="range" class="control-input" id="attackTime" min="0.001" max="1" value="0.01" step="0.001">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Decay Time <span class="value-display" id="decayTimeValue">0.2s</span></label>
+                    <input type="range" class="control-input" id="decayTime" min="0.01" max="3" value="0.2" step="0.01">
+                </div>
+            </div>
+
+            <!-- PITCH & FREQUENCY ENGINE -->
+            <div class="control-panel">
+                <div class="panel-title">Pitch & Frequency Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Frequency Shift <span class="value-display" id="frequencyShiftValue">0 oct</span></label>
+                    <input type="range" class="control-input" id="frequencyShift" min="-4" max="4" value="0" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Dynamic Tracking <span class="value-display" id="dynamicTrackingValue">0.5</span></label>
+                    <input type="range" class="control-input" id="dynamicTracking" min="0" max="2" value="0.5" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Pitch Slides <span class="value-display" id="pitchSlidesValue">0.3</span></label>
+                    <input type="range" class="control-input" id="pitchSlides" min="0" max="1" value="0.3" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Formant Freq <span class="value-display" id="formantFreqValue">800 Hz</span></label>
+                    <input type="range" class="control-input" id="formantFreq" min="200" max="4000" value="800">
+                </div>
+            </div>
+
+            <!-- MATERIAL RESONANCE -->
+            <div class="control-panel advanced-panel">
+                <div class="panel-title">Material Resonance Bank</div>
+                <div class="control-group">
+                    <label class="control-label">Material Type</label>
+                    <div class="synthesis-mode">
+                        <button class="material-button active" data-material="aluminum">Aluminum</button>
+                        <button class="material-button" data-material="steel">Steel</button>
+                        <button class="material-button" data-material="titanium">Titanium</button>
+                        <button class="material-button" data-material="lead">Lead</button>
+                        <button class="material-button" data-material="glass">Glass</button>
+                        <button class="material-button" data-material="crystal">Crystal</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Material Density <span class="value-display" id="materialDensityValue">0.7</span></label>
+                    <input type="range" class="control-input" id="materialDensity" min="0" max="1" value="0.7" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Resonance Size <span class="value-display" id="resonanceSizeValue">0.5</span></label>
+                    <input type="range" class="control-input" id="resonanceSize" min="0" max="1" value="0.5" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Impact Force <span class="value-display" id="impactForceValue">0.8</span></label>
+                    <input type="range" class="control-input" id="impactForce" min="0" max="2" value="0.8" step="0.01">
+                </div>
+            </div>
+
+            <!-- TEMPORAL PROCESSING -->
+            <div class="control-panel">
+                <div class="panel-title">Temporal Processing</div>
+                <div class="control-group">
+                    <label class="control-label">Time Compression <span class="value-display" id="timeCompressionValue">1.0x</span></label>
+                    <input type="range" class="control-input" id="timeCompression" min="0.01" max="100" value="1" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Time Expansion <span class="value-display" id="timeExpansionValue">1.0x</span></label>
+                    <input type="range" class="control-input" id="timeExpansion" min="0.01" max="50" value="1" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Reverse Blend <span class="value-display" id="reverseBlendValue">0.0</span></label>
+                    <input type="range" class="control-input" id="reverseBlend" min="0" max="1" value="0" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Stutter Freq <span class="value-display" id="stutterFreqValue">0 Hz</span></label>
+                    <input type="range" class="control-input" id="stutterFreq" min="0" max="50" value="0" step="0.1">
+                </div>
+            </div>
+
+            <!-- DYNAMICS PROCESSOR -->
+            <div class="control-panel advanced-panel">
+                <div class="panel-title">Advanced Dynamics</div>
+                <div class="control-group">
+                    <label class="control-label">Compression Ratio <span class="value-display" id="compressionRatioValue">10:1</span></label>
+                    <input type="range" class="control-input" id="compressionRatio" min="1" max="500" value="10">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Threshold <span class="value-display" id="dynamicsThresholdValue">-20 dB</span></label>
+                    <input type="range" class="control-input" id="dynamicsThreshold" min="-60" max="0" value="-20">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Release Time <span class="value-display" id="releaseTimeValue">0.1s</span></label>
+                    <input type="range" class="control-input" id="releaseTime" min="0.001" max="10" value="0.1" step="0.001">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Saturation <span class="value-display" id="saturationValue">0.3</span></label>
+                    <input type="range" class="control-input" id="saturation" min="0" max="1" value="0.3" step="0.01">
+                </div>
+            </div>
+
+            <!-- SPECTRAL PROCESSING -->
+            <div class="control-panel">
+                <div class="panel-title">Spectral Processing</div>
+                <div class="control-group">
+                    <label class="control-label">Bass Isolation <span class="value-display" id="bassIsolationValue">0.2</span></label>
+                    <input type="range" class="control-input" id="bassIsolation" min="0" max="1" value="0.2" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Harmonic Enhance <span class="value-display" id="harmonicEnhanceValue">2.0x</span></label>
+                    <input type="range" class="control-input" id="harmonicEnhance" min="0.5" max="8" value="2" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Spectral Flip <span class="value-display" id="spectralFlipValue">0.0</span></label>
+                    <input type="range" class="control-input" id="spectralFlip" min="0" max="1" value="0" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Vocal Character <span class="value-display" id="vocalCharacterValue">0.0</span></label>
+                    <input type="range" class="control-input" id="vocalCharacter" min="0" max="1" value="0" step="0.01">
+                </div>
+            </div>
+
+            <!-- BASS & LOW FREQUENCY ENHANCEMENT -->
+            <div class="control-panel bass-panel">
+                <div class="panel-title">Bass & Low Frequency Enhancement</div>
+                <div class="control-group">
+                    <label class="control-label">Bass Boost <span class="value-display" id="bassBoostValue">6 dB</span></label>
+                    <input type="range" class="control-input" id="bassBoost" min="0" max="15" value="6" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Sub-Bass Freq <span class="value-display" id="subBassFreqValue">40 Hz</span></label>
+                    <input type="range" class="control-input" id="subBassFreq" min="20" max="100" value="40">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Low-Mid Boost <span class="value-display" id="lowMidBoostValue">3 dB</span></label>
+                    <input type="range" class="control-input" id="lowMidBoost" min="0" max="10" value="3" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Bass Saturation <span class="value-display" id="bassSaturationValue">0.2</span></label>
+                    <input type="range" class="control-input" id="bassSaturation" min="0" max="1" value="0.2" step="0.01">
+                </div>
+            </div>
+
+            <!-- GLOBAL PROCESSING -->
+            <div class="control-panel">
+                <div class="panel-title">Global Processing</div>
+                <div class="control-group">
+                    <label class="control-label">Reverb Mix <span class="value-display" id="reverbMixValue">0.4</span></label>
+                    <input type="range" class="control-input" id="reverbMix" min="0" max="1" value="0.4" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Filter Cutoff <span class="value-display" id="filterCutoffValue">15000 Hz</span></label>
+                    <input type="range" class="control-input" id="filterCutoff" min="100" max="20000" value="15000">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Stereo Width <span class="value-display" id="stereoWidthValue">0.7</span></label>
+                    <input type="range" class="control-input" id="stereoWidth" min="0" max="1" value="0.7" step="0.01">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Trigger Threshold <span class="value-display" id="triggerThresholdValue">0.15</span></label>
+                    <input type="range" class="control-input" id="triggerThreshold" min="0.01" max="0.99" value="0.15" step="0.01">
+                </div>
+            </div>
+        </div>
+
+        <div class="main-controls">
+            <button class="main-button" id="startButton">Start Advanced Synthesis</button>
+            <button class="main-button stop" id="stopButton">Stop</button>
+            <p id="statusText" class="status-text">ANMO Advanced Seismic FM Synthesizer Ready</p>
+        </div>
+
+        <div class="visualizer">
+            <canvas id="visualizerCanvas"></canvas>
+            <div class="bass-indicator" id="bassIndicator">Signal: 0%</div>
+            <div class="voice-display" id="voiceCounter">Active Voices: 0</div>
+            <div class="synthesis-display" id="synthesisStatus">Mode: Advanced Ready</div>
+        </div>
+    </div>
+
+    <script>
+        class ANMOAdvancedSeismicFMSynth {
+            constructor() {
+                this.audioContext = null;
+                this.masterGain = null;
+                this.outputGain = null;
+                this.reverbNode = null;
+                this.reverbGain = null;
+                this.dryGain = null;
+                this.filterNode = null;
+                this.compressor = null;
+                this.saturationNode = null;
+                this.bassEQ = null;
+                this.lowMidEQ = null;
+                this.bassSaturator = null;
+                this.seismicBuffer = null;
+                this.reverseBuffer = null;
+                this.isRunning = false;
+                this.animationFrameId = null;
+                this.activeVoices = new Set();
+                this.activeCrystals = new Set();
+                this.maxVoices = 32;   // FM voices
+                this.maxCrystals = 128;
+                this.currentMaterial = 'aluminum';
+                this.currentWaveform = 'sine';
+                this.demoMode = false;
+                
+                this.MIN_MAGNITUDE = 6.0;
+                this.FETCH_TIMESPAN_DAYS = 45;
+                this.STATION_INFO = { net: "IU", sta: "ANMO", loc: "00", cha: "BHZ" };
+
+                this.currentQuakeInfo = null;
+                this.isFetching = false;
+
+                this.fftAnalyzer = null;
+                this.spectralData = null;
+                
+                // Advanced sequencer state
+                this.synthState = {
+                    position: 0,
+                    lastValue: 0,
+                    lastTriggerTime: 0,
+                    crystallinePhase: 0,
+                    signalEnergy: 0,
+                    fmTriggerTime: 0
+                };
+                
+                this.params = {
+                    // Enhanced Volume
+                    masterVolume: 0.8,
+                    synthesisGain: 1.2,
+                    voiceLevel: 0.8,
+                    outputBoost: 6,
+                    
+                    // Bass & Low Frequency Enhancement
+                    bassBoost: 6,
+                    subBassFreq: 40,
+                    lowMidBoost: 3,
+                    bassSaturation: 0.2,
+                    
+                    // Crystalline Engine
+                    crystalSize: 25,
+                    crystallineDensity: 30,
+                    crystallineSpread: 0.8,
+                    crystallineClarity: 0.6,
+                    
+                    // Pitch Engine
+                    frequencyShift: 0,
+                    dynamicTracking: 0.5,
+                    pitchSlides: 0.3,
+                    formantFreq: 800,
+                    
+                    // Material Resonance
+                    materialDensity: 0.7,
+                    resonanceSize: 0.5,
+                    impactForce: 0.8,
+                    
+                    // Temporal Processing
+                    timeCompression: 1,
+                    timeExpansion: 1,
+                    reverseBlend: 0,
+                    stutterFreq: 0,
+                    
+                    // Dynamics
+                    compressionRatio: 10,
+                    dynamicsThreshold: -20,
+                    releaseTime: 0.1,
+                    saturation: 0.3,
+                    
+                    // Spectral
+                    bassIsolation: 0.2,
+                    harmonicEnhance: 2,
+                    spectralFlip: 0,
+                    vocalCharacter: 0,
+                    
+                    // Global
+                    reverbMix: 0.4,
+                    filterCutoff: 15000,
+                    stereoWidth: 0.7,
+                    triggerThreshold: 0.15,
+                    
+                    // FM Monochrome
+                    fmFrequency: 110,
+                    modulationDepth: 300,
+                    fmRatio: 2.5,
+                    attackTime: 0.01,
+                    decayTime: 0.2
+                };
+
+                // Material characteristics
+                this.materials = {
+                    aluminum: { freq: 2400, decay: 0.8, brightness: 0.9, hardness: 0.7 },
+                    steel: { freq: 1200, decay: 2.5, brightness: 0.6, hardness: 0.9 },
+                    titanium: { freq: 3200, decay: 1.2, brightness: 1.0, hardness: 0.95 },
+                    lead: { freq: 600, decay: 0.3, brightness: 0.2, hardness: 0.3 },
+                    glass: { freq: 4800, decay: 0.1, brightness: 1.0, hardness: 0.1 },
+                    crystal: { freq: 6400, decay: 3.0, brightness: 1.0, hardness: 0.2 }
+                };
+                
+                this.initializeUI();
+                this.setupVisualizer();
+            }
+
+            _updateStatus(message, isError = false) {
+                const statusEl = document.getElementById('statusText');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.classList.toggle('error', isError);
+                }
+            }
+
+            async fetchLatestEvent() {
+                try {
+                    const end = new Date().toISOString();
+                    const start = new Date(Date.now() - this.FETCH_TIMESPAN_DAYS * 24 * 60 * 60 * 1000).toISOString();
+                    const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${start}&endtime=${end}&minmagnitude=${this.MIN_MAGNITUDE}&orderby=time&limit=5`;
+
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`USGS API error: ${res.status}`);
+                    const data = await res.json();
+                    
+                    if (!data.features || data.features.length === 0) {
+                        throw new Error(`No M${this.MIN_MAGNITUDE}+ earthquakes found`);
+                    }
+                    
+                    return data.features[0];
+                } catch (error) {
+                    console.error('Event fetch failed:', error);
+                    throw error;
+                }
+            }
+
+            generateAdvancedSeismicData() {
+                console.log('Generating advanced seismic synthesis data...');
+                const sampleRate = 44100;
+                const duration = 180; // 3 minutes
+                const samples = new Float32Array(sampleRate * duration);
+                const reverseSamples = new Float32Array(sampleRate * duration);
+                
+                for (let i = 0; i < samples.length; i++) {
+                    const t = i / sampleRate;
+                    
+                    // Advanced geological synthesis
+                    let signal = 0;
+                    
+                    // Complex P-waves with crystalline characteristics
+                    signal += Math.sin(2 * Math.PI * 0.7 * t) * Math.exp(-t * 0.015) * 
+                             Math.sin(2 * Math.PI * 23 * t) * 0.4;
+                    
+                    // S-waves with harmonic content
+                    if (t > 8) {
+                        signal += Math.sin((t - 8) * Math.PI * 2 * 1.8) * 0.7 * 
+                                 Math.exp(-(t-8) * 0.04) * Math.cos(2 * Math.PI * 47 * t);
+                    }
+                    
+                    // Surface waves with formant structure
+                    if (t > 20) {
+                        const formantFreq = 800 + Math.sin(t * 0.1) * 400;
+                        signal += Math.sin((t - 20) * Math.PI * 2 * 0.2) * 0.5 * 
+                                 Math.exp(-(t-20) * 0.008) * 
+                                 Math.sin(2 * Math.PI * formantFreq * t / 1000) * 0.3;
+                    }
+                    
+                    // Advanced aftershocks with material resonance
+                    if (Math.random() < 0.001) {
+                        const burstFreq = 50 + Math.random() * 200;
+                        const burstDur = 0.1 + Math.random() * 0.5;
+                        signal += Math.sin(t * Math.PI * 2 * burstFreq) * 
+                                 (0.6 + Math.random() * 0.4) * 
+                                 Math.exp(-Math.pow(t % 1, 2) * 10);
+                    }
+                    
+                    // Enhanced geological noise
+                    signal += (Math.random() - 0.5) * 0.06 * Math.sin(2 * Math.PI * 60 * t);
+                    
+                    samples[i] = signal;
+                    reverseSamples[samples.length - 1 - i] = signal;
+                }
+                
+                return { 
+                    forward: this.normalize(samples),
+                    reverse: this.normalize(reverseSamples)
+                };
+            }
+
+            normalize(data) {
+                if (!data || data.length === 0) return new Float32Array(0);
+                
+                const maxVal = data.reduce((max, val) => Math.max(max, Math.abs(val)), 0);
+                if (maxVal === 0) return new Float32Array(data.length);
+                
+                const factor = 0.9 / maxVal; // Higher normalization level
+                const normalized = new Float32Array(data.length);
+                for (let i = 0; i < data.length; i++) {
+                    normalized[i] = data[i] * factor;
+                }
+                return normalized;
+            }
+            
+            async initAudioContext() {
+                try {
+                    if (!this.audioContext) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    if (!this.masterGain) {
+                        this.setupAdvancedAudioGraph();
+                    }
+                } catch (error) {
+                    console.error('Audio context initialization failed:', error);
+                    throw new Error('Failed to initialize advanced audio system');
+                }
+            }
+            
+            setupAdvancedAudioGraph() {
+                try {
+                    // Enhanced gain staging for better volume
+                    this.masterGain = this.audioContext.createGain();
+                    this.masterGain.gain.value = this.params.masterVolume;
+                    
+                    this.outputGain = this.audioContext.createGain();
+                    this.outputGain.gain.value = Math.pow(10, this.params.outputBoost / 20); // dB to linear
+                    
+                    // Bass & Low Frequency Enhancement
+                    this.bassEQ = this.audioContext.createBiquadFilter();
+                    this.bassEQ.type = 'lowshelf';
+                    this.bassEQ.frequency.value = this.params.subBassFreq;
+                    this.bassEQ.gain.value = this.params.bassBoost;
+                    
+                    this.lowMidEQ = this.audioContext.createBiquadFilter();
+                    this.lowMidEQ.type = 'peaking';
+                    this.lowMidEQ.frequency.value = 250;
+                    this.lowMidEQ.Q.value = 0.8;
+                    this.lowMidEQ.gain.value = this.params.lowMidBoost;
+
+                    this.bassSaturator = this.audioContext.createWaveShaper();
+                    this.updateBassSaturationCurve();
+                    
+                    // Advanced compressor
+                    this.compressor = this.audioContext.createDynamicsCompressor();
+                    this.compressor.threshold.value = this.params.dynamicsThreshold;
+                    this.compressor.knee.value = 0;
+                    this.compressor.ratio.value = this.params.compressionRatio;
+                    this.compressor.attack.value = 0.001;
+                    this.compressor.release.value = this.params.releaseTime;
+                    
+                    // Saturation for warmth
+                    this.saturationNode = this.audioContext.createWaveShaper();
+                    this.updateSaturationCurve();
+
+                    // High-quality filter
+                    this.filterNode = this.audioContext.createBiquadFilter();
+                    this.filterNode.type = 'lowpass';
+                    this.filterNode.frequency.value = this.params.filterCutoff;
+                    this.filterNode.Q.value = 0.7;
+                    
+                    // Enhanced reverb
+                    this.reverbNode = this.audioContext.createConvolver();
+                    this.reverbNode.buffer = this.createAdvancedReverbIR();
+                    
+                    this.reverbGain = this.audioContext.createGain();
+                    this.reverbGain.gain.value = this.params.reverbMix;
+                    
+                    this.dryGain = this.audioContext.createGain();
+                    this.dryGain.gain.value = 1 - this.params.reverbMix;
+                    
+                    // Spectral analyzer
+                    this.fftAnalyzer = this.audioContext.createAnalyser();
+                    this.fftAnalyzer.fftSize = 2048;
+                    this.spectralData = new Float32Array(this.fftAnalyzer.frequencyBinCount);
+
+                    // Advanced audio graph routing with bass enhancement
+                    this.masterGain.connect(this.bassEQ);
+                    this.bassEQ.connect(this.lowMidEQ);
+                    this.lowMidEQ.connect(this.bassSaturator);
+                    this.bassSaturator.connect(this.saturationNode);
+                    this.saturationNode.connect(this.compressor);
+                    this.compressor.connect(this.filterNode);
+                    this.filterNode.connect(this.outputGain);
+                    this.outputGain.connect(this.dryGain);
+                    this.outputGain.connect(this.reverbNode);
+                    
+                    this.reverbNode.connect(this.reverbGain);
+                    
+                    this.dryGain.connect(this.audioContext.destination);
+                    this.reverbGain.connect(this.audioContext.destination);
+
+                    this.dryGain.connect(this.fftAnalyzer);
+                } catch (error) {
+                    console.error('Advanced audio graph setup failed:', error);
+                    throw new Error('Failed to set up advanced audio processing chain');
+                }
+            }
+
+            createAdvancedReverbIR() {
+                const sampleRate = this.audioContext ? this.audioContext.sampleRate : 44100;
+                const length = sampleRate * 6;
+                const buffer = this.audioContext.createBuffer(2, length, sampleRate);
+                
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = buffer.getChannelData(channel);
+                    for (let i = 0; i < length; i++) {
+                        const t = i / length;
+                        // Advanced reverb with material characteristics
+                        const decay = Math.pow(1 - t, 4.5);
+                        const metallic = Math.sin(2 * Math.PI * 1200 * t) * Math.exp(-t * 20);
+                        const crystalline = Math.sin(2 * Math.PI * 3600 * t) * Math.exp(-t * 40);
+                        data[i] = ((Math.random() * 2 - 1) + metallic * 0.2 + crystalline * 0.15) * decay;
+                    }
+                }
+                return buffer;
+            }
+
+            updateSaturationCurve() {
+                if (!this.saturationNode) return;
+                try {
+                    const amount = this.params.saturation;
+                    const samples = 44100;
+                    const curve = new Float32Array(samples);
+                    
+                    for (let i = 0; i < samples; i++) {
+                        const x = (i * 2) / samples - 1;
+                        if (amount === 0) {
+                            curve[i] = x;
+                        } else {
+                            // Advanced saturation with musical harmonics
+                            const processed = Math.tanh(x * (1 + amount * 8));
+                            curve[i] = processed + Math.sin(x * Math.PI * 6) * amount * 0.08;
+                        }
+                    }
+                    this.saturationNode.curve = curve;
+                } catch (error) {
+                    console.warn('Failed to update saturation curve:', error);
+                }
+            }
+
+            updateBassSaturationCurve() {
+                if (!this.bassSaturator) return;
+                try {
+                    const amount = this.params.bassSaturation;
+                    const k = amount * 100;
+                    const n_samples = 44100;
+                    const curve = new Float32Array(n_samples);
+                    const deg = Math.PI / 180;
+                    
+                    for (let i = 0; i < n_samples; ++i) {
+                        const x = i * 2 / n_samples - 1;
+                        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+                    }
+                    this.bassSaturator.curve = curve;
+                } catch (error) {
+                    console.warn('Failed to update bass saturation curve:', error);
+                }
+            }
+
+            _createAudioBufferFromFloat32Array(samples) {
+                if (!this.audioContext || !samples || samples.length === 0) {
+                    throw new Error("Cannot create AudioBuffer: invalid data");
+                }
+                try {
+                    const buffer = this.audioContext.createBuffer(1, samples.length, this.audioContext.sampleRate);
+                    buffer.copyToChannel(samples, 0);
+                    return buffer;
+                } catch (error) {
+                    console.error('AudioBuffer creation failed:', error);
+                    throw new Error('Failed to create audio buffer from seismic data');
+                }
+            }
+
+            // Advanced Crystalline Voice Creation with better volume
+            createAdvancedVoice(frequency, velocity) {
+                if (!this.audioContext || this.activeCrystals.size >= this.maxCrystals) return null;
+                
+                const now = this.audioContext.currentTime;
+                const material = this.materials[this.currentMaterial];
+                
+                const crystal = {
+                    oscillators: [],
+                    gains: [],
+                    filters: [],
+                    createdAt: now,
+                    stop: (time) => {
+                        const stopTime = time || now + 0.01;
+                        crystal.gains.forEach(gain => {
+                            gain.gain.setTargetAtTime(0, stopTime, 0.005);
+                        });
+                        setTimeout(() => {
+                            crystal.oscillators.forEach(osc => {
+                                try { osc.stop(); } catch(e) {}
+                            });
+                            this.activeCrystals.delete(crystal);
+                        }, 20);
+                    }
+                };
+
+                // Enhanced crystalline synthesis with better volume
+                const numPartials = 2; // Reduced for better volume distribution
+                for (let i = 0; i < numPartials; i++) {
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    const filter = this.audioContext.createBiquadFilter();
+                    const panner = this.audioContext.createStereoPanner();
+
+                    // Enhanced frequency calculation
+                    const baseFreq = frequency * Math.pow(2, this.params.frequencyShift);
+                    const partialFreq = baseFreq * (i + 1) * this.params.harmonicEnhance;
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(partialFreq, now);
+                    
+                    // Material resonant filter
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(material.freq * (i + 1), now);
+                    filter.Q.setValueAtTime(material.hardness * 15 * this.params.materialDensity, now);
+                    
+                    // Stereo positioning
+                    panner.pan.value = (Math.random() - 0.5) * this.params.crystallineSpread;
+                    
+                    // Enhanced envelope with better volume
+                    const crystalDuration = this.params.crystalSize / 1000;
+                    const attack = crystalDuration * 0.1 * this.params.crystallineClarity;
+                    const decay = crystalDuration * material.decay * this.params.resonanceSize;
+                    
+                    // MUCH HIGHER VOLUME LEVELS
+                    const volume = velocity * this.params.voiceLevel * this.params.synthesisGain * 
+                                  material.brightness * 0.8; // Increased from 0.2 to 0.8
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(volume, now + attack);
+                    gain.gain.setTargetAtTime(0, now + attack, decay / 3);
+                    
+                    // Route: osc → filter → gain → panner → master
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(panner);
+                    panner.connect(this.masterGain);
+                    
+                    osc.start(now);
+                    
+                    crystal.oscillators.push(osc);
+                    crystal.gains.push(gain);
+                    crystal.filters.push(filter);
+                    
+                    // Auto-cleanup
+                    setTimeout(() => {
+                        if (this.activeCrystals.has(crystal)) {
+                            crystal.stop(this.audioContext.currentTime);
+                        }
+                    }, (attack + decay + 0.5) * 1000);
+                }
+
+                this.activeCrystals.add(crystal);
+                return crystal;
+            }
+
+            // FM MONOCHROME Voice Creation
+            createFMMonochromeVoice(frequency, velocity) {
+                if (!this.audioContext || this.activeVoices.size >= this.maxVoices) return null;
+                
+                // Voice limiting and stealing
+                if (this.activeVoices.size >= this.maxVoices) {
+                    // Stop the oldest voice
+                    const oldestVoice = this.activeVoices.values().next().value;
+                    if (oldestVoice) {
+                        oldestVoice.stop(this.audioContext.currentTime);
+                    }
+                }
+                
+                const now = this.audioContext.currentTime;
+                const voice = {
+                    oscillators: [],
+                    gains: [],
+                    createdAt: now,
+                    stop: (time) => {
+                        const stopTime = time || now + 0.01;
+                        voice.gains.forEach(gain => {
+                            gain.gain.setTargetAtTime(0, stopTime, 0.01); // Faster cleanup
+                        });
+                        setTimeout(() => {
+                            voice.oscillators.forEach(osc => {
+                                try { osc.stop(); } catch(e) {}
+                            });
+                            this.activeVoices.delete(voice);
+                        }, 50); // Faster cleanup
+                    }
+                };
+
+                // Create FM synthesis
+                const carrier = this.audioContext.createOscillator();
+                const modulator = this.audioContext.createOscillator();
+                const modGain = this.audioContext.createGain();
+                const envGain = this.audioContext.createGain();
+                const panner = this.audioContext.createStereoPanner();
+
+                carrier.type = this.currentWaveform;
+                modulator.type = this.currentWaveform;
+                
+                carrier.frequency.setValueAtTime(frequency, now);
+                modulator.frequency.setValueAtTime(frequency * this.params.fmRatio, now);
+
+                // FM routing
+                modulator.connect(modGain);
+                modGain.connect(carrier.frequency);
+                carrier.connect(envGain);
+                envGain.connect(panner);
+                panner.connect(this.masterGain);
+
+                // Set panning
+                panner.pan.value = (Math.random() - 0.5) * this.params.stereoWidth;
+
+                // Envelope - Faster decay for voice management
+                const attack = Math.min(this.params.attackTime, 0.05); // Cap attack time
+                const decay = Math.min(this.params.decayTime, 1.0); // Cap decay time
+                const modAmount = this.params.modulationDepth * velocity;
+                const volume = this.params.voiceLevel * velocity * 0.4; // Adjust volume for FM synthesis
+                
+                envGain.gain.setValueAtTime(0, now);
+                envGain.gain.linearRampToValueAtTime(volume, now + attack);
+                envGain.gain.setTargetAtTime(0, now + attack, decay / 4); // Faster decay
+                
+                modGain.gain.setValueAtTime(0, now);
+                modGain.gain.linearRampToValueAtTime(modAmount, now + attack);
+                modGain.gain.setTargetAtTime(0, now + attack, decay / 4); // Faster decay
+
+                carrier.start(now);
+                modulator.start(now);
+                
+                // Auto-stop voices after decay + safety margin
+                const maxDuration = attack + decay + 0.5;
+                setTimeout(() => {
+                    if (this.activeVoices.has(voice)) {
+                        voice.stop(this.audioContext.currentTime);
+                    }
+                }, maxDuration * 1000);
+
+                voice.oscillators.push(carrier, modulator);
+                voice.gains.push(envGain, modGain);
+
+                this.activeVoices.add(voice);
+                return voice;
+            }
+
+            // Advanced Sequencer
+            runAdvancedSequencer() {
+                if (!this.seismicBuffer || !this.isRunning) return;
+                
+                const bufferData = this.params.reverseBlend > 0.5 ? this.reverseBuffer : this.seismicBuffer;
+                if (!bufferData) return;
+                
+                const currentValue = bufferData.getChannelData(0)[Math.floor(this.synthState.position)];
+                const threshold = this.params.triggerThreshold;
+                const now = this.audioContext.currentTime;
+
+                // Enhanced signal tracking
+                this.synthState.signalEnergy = Math.abs(currentValue) * this.params.dynamicTracking;
+                
+                // Advanced crystalline triggering
+                const densityInterval = 1000 / this.params.crystallineDensity;
+                const timeSinceLastTrigger = now - this.synthState.lastTriggerTime;
+                
+                if (timeSinceLastTrigger >= (densityInterval / 1000)) {
+                    if (this.synthState.signalEnergy > threshold || Math.random() < 0.1) {
+                        const baseFreq = 110 * Math.pow(2, this.params.formantFreq / 1000);
+                        const velocity = Math.min(1, this.synthState.signalEnergy / threshold);
+                        
+                        // Apply pitch sliding
+                        const slidingFreq = baseFreq * (1 + currentValue * this.params.pitchSlides);
+                        
+                        this.createAdvancedVoice(slidingFreq, velocity);
+                        this.synthState.lastTriggerTime = now;
+                    }
+                }
+                
+                // FM MONOCHROME triggering
+                const fmTimeSinceLastTrigger = now - this.synthState.fmTriggerTime;
+                // Minimum interval between FM triggers (50ms)
+                const minFMInterval = 0.05;
+                
+                if (fmTimeSinceLastTrigger >= minFMInterval) {
+                    // Trigger FM voices when signal crosses threshold
+                    if (this.synthState.lastValue < threshold && currentValue >= threshold) {
+                        const velocity = Math.min(1, Math.abs(currentValue) / threshold);
+                        this.createFMMonochromeVoice(this.params.fmFrequency, velocity);
+                        this.synthState.fmTriggerTime = now;
+                    }
+                    this.synthState.lastValue = currentValue;
+                }
+                
+                // Enhanced temporal manipulation
+                let positionAdvance = 15;
+                
+                if (this.params.timeCompression !== 1) {
+                    positionAdvance *= this.params.timeCompression;
+                }
+                
+                if (this.params.timeExpansion !== 1) {
+                    positionAdvance /= this.params.timeExpansion;
+                }
+                
+                // Stutter effect
+                if (this.params.stutterFreq > 0) {
+                    const stutterPhase = (now * this.params.stutterFreq) % 1;
+                    if (stutterPhase < 0.5) {
+                        positionAdvance *= 0.1;
+                    }
+                }
+                
+                this.synthState.position += positionAdvance;
+                if (this.synthState.position >= bufferData.length) {
+                    this.synthState.position = 0;
+                }
+                
+                this.synthState.crystallinePhase += 0.01;
+
+                // Schedule next iteration
+                if (this.isRunning) {
+                    setTimeout(() => this.runAdvancedSequencer(), 8);
+                }
+            }
+
+            async startSynthesis() {
+                if (this.isRunning || this.isFetching) return;
+                
+                const startButton = document.getElementById('startButton');
+                
+                try {
+                    await this.initAudioContext();
+                    
+                    if (!this.seismicBuffer) {
+                        this.isFetching = true;
+                        startButton.disabled = true;
+                        this._updateStatus('Initializing advanced synthesis systems...');
+                        
+                        try {
+                            this._updateStatus(`Seeking M${this.MIN_MAGNITUDE}+ geological events...`);
+                            
+                            const event = await this.fetchLatestEvent();
+                            this.currentQuakeInfo = {
+                                place: event.properties.place || "Unknown location",
+                                mag: event.properties.mag || 0,
+                                time: new Date(event.properties.time).toISOString()
+                            };
+
+                            document.querySelector('.subtitle').textContent = `M${this.currentQuakeInfo.mag.toFixed(1)} - ${this.currentQuakeInfo.place} - Advanced Synthesis`;
+                            this.demoMode = false;
+                            
+                        } catch (realDataError) {
+                            console.warn('Real seismic data unavailable, using advanced synthesis mode:', realDataError);
+                            this._updateStatus('Generating advanced geological synthesis...');
+                            
+                            document.querySelector('.subtitle').textContent = 'Advanced Mode - Enhanced Geological Synthesis';
+                            this.demoMode = true;
+                        }
+                        
+                        // Generate advanced synthesis data
+                        const advancedData = this.generateAdvancedSeismicData();
+                        this.seismicBuffer = this._createAudioBufferFromFloat32Array(advancedData.forward);
+                        this.reverseBuffer = this._createAudioBufferFromFloat32Array(advancedData.reverse);
+                        
+                        this.isFetching = false;
+                        startButton.disabled = false;
+                    }
+                    
+                    // Start advanced synthesis
+                    this.isRunning = true;
+                    
+                    // Enhanced gain staging for better volume
+                    this.masterGain.gain.setTargetAtTime(this.params.masterVolume, this.audioContext.currentTime, 0.01);
+                    this.outputGain.gain.setTargetAtTime(Math.pow(10, this.params.outputBoost / 20), this.audioContext.currentTime, 0.01);
+
+                    // Reset synthesis state
+                    this.synthState.position = 0;
+                    this.synthState.lastValue = 0;
+                    this.synthState.lastTriggerTime = this.audioContext.currentTime;
+                    this.synthState.fmTriggerTime = this.audioContext.currentTime;
+                    this.synthState.crystallinePhase = 0;
+                    this.synthState.signalEnergy = 0;
+
+                    // Start advanced sequencer
+                    this.runAdvancedSequencer();
+                    this.startVisualizer();
+                    
+                    this._updateStatus('Advanced geological FM synthesis active');
+                    document.getElementById('synthesisStatus').textContent = 'Mode: Advanced FM Active';
+
+                } catch (error) {
+                    console.error("Advanced synthesis failed:", error);
+                    this._updateStatus(`Error: ${error.message}`, true);
+                    this.stopSynthesis(null, true);
+                    this.seismicBuffer = null;
+                    this.reverseBuffer = null;
+                    this.currentQuakeInfo = null;
+                } finally {
+                    this.isFetching = false;
+                    startButton.disabled = this.isRunning;
+                }
+            }
+            
+            stopSynthesis(finalMessage = null, fromError = false) {
+                if (!this.isRunning && !this.isFetching) return;
+                
+                this.isFetching = false;
+                this.isRunning = false;
+                
+                if (this.masterGain) {
+                    this.masterGain.gain.setTargetAtTime(0, this.audioContext.currentTime, 0.1);
+                }
+                
+                setTimeout(() => {
+                    this.activeCrystals.forEach(crystal => crystal.stop());
+                    this.activeCrystals.clear();
+                    this.activeVoices.forEach(voice => voice.stop && voice.stop());
+                    this.activeVoices.clear();
+                }, 200);
+
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                
+                document.getElementById('startButton').disabled = false;
+                document.getElementById('synthesisStatus').textContent = 'Mode: Ready';
+
+                if (!fromError) {
+                    this.seismicBuffer = null;
+                    this.reverseBuffer = null;
+                    this.currentQuakeInfo = null;
+                    document.querySelector('.subtitle').textContent = 'Albuquerque, New Mexico, USA - Advanced Geological Synthesis';
+                    this._updateStatus(finalMessage || 'Advanced synthesis stopped. Ready for activation.');
+                }
+            }
+
+            setupVisualizer() {
+                this.canvas = document.getElementById('visualizerCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = this.canvas.offsetWidth * window.devicePixelRatio;
+                this.canvas.height = this.canvas.offsetHeight * window.devicePixelRatio;
+                this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            }
+
+            startVisualizer() {
+                const animate = () => {
+                    if (!this.isRunning && this.activeCrystals.size === 0 && this.activeVoices.size === 0) {
+                        this.ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+                        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                        return;
+                    }
+                    
+                    this.animationFrameId = requestAnimationFrame(animate);
+                    
+                    if (this.fftAnalyzer) {
+                        this.fftAnalyzer.getFloatTimeDomainData(this.spectralData);
+                    }
+
+                    // Advanced visualization
+                    this.ctx.fillStyle = 'rgba(10, 10, 15, 0.15)';
+                    this.ctx.fillRect(0, 0, this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio);
+                    
+                    // Enhanced waveform with ANMO colors
+                    this.ctx.lineWidth = 3;
+                    
+                    // Create gradient based on signal energy
+                    const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width / window.devicePixelRatio, 0);
+                    gradient.addColorStop(0, `rgba(255, 107, 53, ${0.4 + this.synthState.signalEnergy})`);
+                    gradient.addColorStop(0.5, `rgba(247, 147, 30, ${0.6 + this.synthState.signalEnergy * 0.5})`);
+                    gradient.addColorStop(1, `rgba(255, 210, 63, ${0.4 + this.synthState.signalEnergy})`);
+                    
+                    this.ctx.strokeStyle = gradient;
+                    this.ctx.beginPath();
+                    
+                    const sliceWidth = (this.canvas.width / window.devicePixelRatio) * 1.0 / this.fftAnalyzer.frequencyBinCount;
+                    let x = 0;
+                    
+                    for (let i = 0; i < this.fftAnalyzer.frequencyBinCount; i++) {
+                        const v = this.spectralData[i] * 0.7;
+                        // Add crystalline enhancement to visualization
+                        const enhancedV = v + Math.sin(this.synthState.crystallinePhase + i * 0.1) * 0.1 * this.params.crystallineClarity;
+                        const y = (this.canvas.height / window.devicePixelRatio) / 2 + enhancedV * (this.canvas.height / window.devicePixelRatio);
+                        if (i === 0) this.ctx.moveTo(x, y);
+                        else this.ctx.lineTo(x, y);
+                        x += sliceWidth;
+                    }
+                    this.ctx.stroke();
+
+                    // Draw threshold line for FM triggering
+                    const threshold = this.params.triggerThreshold;
+                    const yThresh = (this.canvas.height / window.devicePixelRatio) / 2 - (threshold * (this.canvas.height / window.devicePixelRatio) / 2);
+                    this.ctx.setLineDash([4, 4]);
+                    this.ctx.strokeStyle = 'rgba(247, 147, 30, 0.6)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, yThresh);
+                    this.ctx.lineTo(this.canvas.width / window.devicePixelRatio, yThresh);
+                    this.ctx.stroke();
+                    this.ctx.setLineDash([]);
+
+                    // Material particles
+                    this.ctx.fillStyle = `rgba(247, 147, 30, ${0.7 + this.synthState.signalEnergy})`;
+                    const totalParticles = this.activeCrystals.size * 2 + this.activeVoices.size * 3;
+                    for (let i = 0; i < totalParticles; i++) {
+                        const x = Math.random() * (this.canvas.width / window.devicePixelRatio);
+                        const y = Math.random() * (this.canvas.height / window.devicePixelRatio);
+                        const size = 1 + Math.random() * 3;
+                        this.ctx.fillRect(x, y, size, size);
+                    }
+
+                    this.updateDisplays();
+                };
+                animate();
+            }
+
+            updateDisplays() {
+                const totalActive = this.activeCrystals.size + this.activeVoices.size;
+                const voiceDisplay = document.getElementById('voiceCounter');
+                voiceDisplay.textContent = `Active Voices: ${totalActive}/${this.maxCrystals + this.maxVoices}`;
+                
+                if (totalActive > (this.maxCrystals + this.maxVoices) * 0.8) {
+                    voiceDisplay.style.color = '#ff6b35';
+                } else {
+                    voiceDisplay.style.color = '#ffd23f';
+                }
+
+                // Signal level display
+                const signalLevel = (this.synthState.signalEnergy * 100).toFixed(1);
+                document.getElementById('bassIndicator').textContent = `Signal: ${signalLevel}%`;
+            }
+            
+            initializeUI() {
+                const controls = Object.keys(this.params);
+                controls.forEach(param => {
+                    const slider = document.getElementById(param);
+                    if (slider) {
+                        slider.addEventListener('input', (e) => {
+                            const value = parseFloat(e.target.value);
+                            this.params[param] = value;
+                            this.updateDisplayAndAudio(param, value, e.target);
+                        });
+                        this.updateDisplayAndAudio(param, this.params[param], slider);
+                    }
+                });
+
+                // Material buttons
+                document.querySelectorAll('.material-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.material-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentMaterial = e.target.dataset.material;
+                    });
+                });
+
+                // Waveform buttons for FM synthesis
+                document.querySelectorAll('.wave-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.wave-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentWaveform = e.target.dataset.wave;
+                    });
+                });
+                
+                document.getElementById('startButton').addEventListener('click', () => this.startSynthesis());
+                document.getElementById('stopButton').addEventListener('click', () => this.stopSynthesis());
+            }
+
+            updateDisplayAndAudio(param, value, target) {
+                const display = document.getElementById(param + 'Value');
+                if (display) {
+                    let text = value.toFixed(2);
+                    
+                    if (param.includes('Size') && param !== 'resonanceSize') text = `${Math.round(value)}ms`;
+                    else if (param.includes('Density')) text = `${Math.round(value)}/sec`;
+                    else if (param.includes('Freq') || param.includes('Cutoff') || param.includes('Formant')) text = `${value.toFixed(0)} Hz`;
+                    else if (param.includes('Shift')) text = `${value.toFixed(1)} oct`;
+                    else if (param.includes('Ratio') && param !== 'fmRatio') text = `${value.toFixed(0)}:1`;
+                    else if (param === 'fmRatio') text = value.toFixed(1);
+                    else if (param.includes('Threshold')) text = `${value.toFixed(0)} dB`;
+                    else if (param.includes('Time') && param !== 'attackTime' && param !== 'decayTime') text = `${value.toFixed(3)}s`;
+                    else if (param === 'attackTime' || param === 'decayTime') text = `${value.toFixed(3)}s`;
+                    else if (param.includes('Compression')) text = `${value.toFixed(2)}x`;
+                    else if (param.includes('Expansion')) text = `${value.toFixed(2)}x`;
+                    else if (param === 'stutterFreq') text = `${value.toFixed(1)} Hz`;
+                    else if (param.includes('Enhance')) text = `${value.toFixed(1)}x`;
+                    else if (param === 'outputBoost' || param.includes('Boost')) text = `${value.toFixed(1)} dB`;
+                    else if (param.includes('modulationDepth')) text = Math.round(value);
+                    
+                    display.textContent = text;
+                }
+                
+                if (target) {
+                    const percent = (target.max - target.min) === 0 ? 0 : (value - target.min) / (target.max - target.min) * 100;
+                    target.style.background = `linear-gradient(to right, #ff6b35 ${percent}%, #333 ${percent}%)`;
+                }
+                
+                this.updateAudioParameters(param, value);
+            }
+            
+            updateAudioParameters(param, value) {
+                if (!this.audioContext) return;
+                const now = this.audioContext.currentTime;
+                const ramp = 0.01;
+
+                try {
+                    switch (param) {
+                        case 'masterVolume': 
+                            if (this.masterGain) this.masterGain.gain.setTargetAtTime(value, now, ramp); 
+                            break;
+                        case 'outputBoost':
+                            if (this.outputGain) this.outputGain.gain.setTargetAtTime(Math.pow(10, value / 20), now, ramp);
+                            break;
+                        case 'filterCutoff': 
+                            if (this.filterNode) this.filterNode.frequency.setTargetAtTime(value, now, ramp); 
+                            break;
+                        case 'reverbMix':
+                            if (this.reverbGain) this.reverbGain.gain.setTargetAtTime(value, now, ramp);
+                            if (this.dryGain) this.dryGain.gain.setTargetAtTime(1 - value, now, ramp);
+                            break;
+                        case 'dynamicsThreshold':
+                            if (this.compressor) this.compressor.threshold.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'compressionRatio':
+                            if (this.compressor) this.compressor.ratio.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'releaseTime':
+                            if (this.compressor) this.compressor.release.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'saturation':
+                            this.updateSaturationCurve();
+                            break;
+                        case 'bassBoost':
+                            if (this.bassEQ) this.bassEQ.gain.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'subBassFreq':
+                            if (this.bassEQ) this.bassEQ.frequency.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'lowMidBoost':
+                            if (this.lowMidEQ) this.lowMidEQ.gain.setTargetAtTime(value, now, ramp);
+                            break;
+                        case 'bassSaturation':
+                            this.updateBassSaturationCurve();
+                            break;
+                    }
+                } catch (error) {
+                    console.warn(`Failed to update ${param}:`, error);
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            window.synth = new ANMOAdvancedSeismicFMSynth();
+        });
+    </script>
+</body>
+</html>
