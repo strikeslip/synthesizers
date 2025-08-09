@@ -1,2 +1,2 @@
-# synthesizers
-Experimental Seismic Waveform Audio Synthesizers
+# Experimental Seismic Waveform Audio Synthesizers
+
