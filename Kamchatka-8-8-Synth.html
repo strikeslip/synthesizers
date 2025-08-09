@@ -1,0 +1,3732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>KAMCHATKA 8.8 ENHANCED SEISMIC SYNTHESIS v18 - FIXED</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ffd23f);
+            border-radius: 2px;
+            animation: pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; width: 100px; }
+            100% { opacity: 1; width: 300px; }
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-top: 15px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: #888;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            min-height: 1.2em;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .earthquake-info {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+        }
+
+        .data-status {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .data-status.loading {
+            background: rgba(255, 193, 7, 0.1);
+            border-color: rgba(255, 193, 7, 0.3);
+            display: block;
+        }
+
+        .data-status.success {
+            background: rgba(40, 167, 69, 0.1);
+            border-color: rgba(40, 167, 69, 0.3);
+            display: block;
+        }
+
+        .data-status.error {
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.3);
+            display: block;
+        }
+
+        .clipping-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            animation: clipBlink 0.5s ease-in-out infinite alternate;
+        }
+
+        .clipping-indicator.active {
+            opacity: 1;
+        }
+
+        @keyframes clipBlink {
+            0% { background: rgba(220, 53, 69, 0.9); }
+            100% { background: rgba(255, 87, 87, 0.9); }
+        }
+
+        .found-sound-indicator {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(139, 69, 19, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .found-sound-indicator.active {
+            opacity: 1;
+        }
+
+        .peak-meters {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+
+        .peak-meter {
+            width: 200px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .peak-fill {
+            height: 100%;
+            background: linear-gradient(to right, #28a745, #ffc107, #dc3545);
+            width: 0%;
+            transition: width 0.05s ease;
+        }
+
+        .peak-label {
+            font-size: 0.7rem;
+            color: #ccc;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-panel {
+            background: rgba(25, 25, 40, 0.9);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .control-panel:hover {
+            border-color: rgba(255, 107, 53, 0.6);
+            box-shadow: 0 12px 48px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(255, 107, 53, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            width: 100%;
+            height: 22px;
+            display: flex;
+            align-items: center;
+        }
+
+        .slider-track {
+            position: absolute;
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .slider-fill {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(to right, #ff6b35, #f7931e);
+            border-radius: 4px;
+            transition: width 0.1s ease;
+        }
+
+        .control-input {
+            position: relative;
+            width: 100%;
+            height: 22px;
+            background: transparent;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .control-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .control-input::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 3px 10px rgba(255, 107, 53, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .control-input::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.7);
+        }
+
+        .control-input::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.7);
+        }
+
+        .value-display {
+            font-size: 0.8rem;
+            color: #ffd23f;
+            float: right;
+            font-weight: bold;
+        }
+
+        .advanced-panel {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+            border: 2px solid rgba(255, 107, 53, 0.4);
+        }
+
+        .nostalgic-panel {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(205, 133, 63, 0.1));
+            border: 2px solid rgba(205, 133, 63, 0.4);
+        }
+
+        .nostalgic-panel .panel-title {
+            color: #cd853f;
+            border-bottom-color: rgba(205, 133, 63, 0.3);
+        }
+
+        .engine-panel {
+            background: linear-gradient(135deg, rgba(123, 104, 238, 0.1), rgba(72, 61, 139, 0.1));
+            border: 2px solid rgba(123, 104, 238, 0.4);
+        }
+
+        .engine-panel .panel-title {
+            color: #7b68ee;
+            border-bottom-color: rgba(123, 104, 238, 0.3);
+        }
+
+        .volume-panel {
+            background: linear-gradient(135deg, rgba(255, 210, 63, 0.1), rgba(255, 107, 53, 0.1));
+            border: 2px solid rgba(255, 210, 63, 0.4);
+        }
+
+        .bass-panel {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+            border: 2px solid rgba(255, 107, 53, 0.4);
+        }
+
+        .composition-panel {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border: 2px solid rgba(240, 147, 251, 0.4);
+        }
+
+        .synthesis-mode {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .mode-button, .preset-button, .material-button, .scale-button {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .mode-button:hover, .preset-button:hover, .material-button:hover, .scale-button:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+        }
+
+        .mode-button.active, .preset-button.active, .material-button.active, .scale-button.active {
+            background: rgba(255, 107, 53, 0.4);
+            border-color: #ff6b35;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .preset-controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .preset-button {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .preset-button:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: rgba(255, 107, 53, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .preset-button.active {
+            background: rgba(255, 107, 53, 0.4);
+            border-color: #ff6b35;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .main-controls {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .status-text {
+            margin-top: 20px;
+            min-height: 1.2em;
+            color: #aaa;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+
+        .status-text.error {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .status-text.success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .main-button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: #fff;
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-weight: bold;
+            padding: 18px 45px;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+            font-family: inherit;
+            -webkit-appearance: none;
+        }
+
+        .main-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.5);
+        }
+
+        .main-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .main-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .main-button.stop {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .main-button.download {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .visualizer {
+            background: rgba(10, 10, 15, 0.9);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualizer canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .bass-indicator {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #ff6b35;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .voice-display {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: #ffd23f;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 210, 63, 0.3);
+        }
+
+        .synthesis-display {
+            position: absolute;
+            bottom: 15px;
+            left: 20px;
+            font-size: 0.9rem;
+            color: #f7931e;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(247, 147, 30, 0.3);
+        }
+
+        .performance-display {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #88c0d0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(136, 192, 208, 0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ffd23f);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .material-designer {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .material-designer.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .main-button {
+                padding: 15px 25px;
+                font-size: 1rem;
+                margin: 8px 5px;
+            }
+            
+            .preset-button {
+                padding: 10px 20px;
+                margin: 5px;
+            }
+            
+            .control-panel {
+                padding: 20px;
+            }
+            
+            .synthesis-mode {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                letter-spacing: 2px;
+            }
+            
+            .main-button {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clipping-indicator" id="clippingIndicator">
+        ⚠ CLIPPING DETECTED
+    </div>
+
+    <div class="found-sound-indicator" id="foundSoundIndicator">
+        🎵 FOUND SOUND
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>KAMCHATKA 8.8 ENHANCED SEISMIC SYNTHESIS<span class="version-badge">v18 Fixed</span></h1>
+            <div class="subtitle">July 29, 2025 - Magnitude 8.8 Earthquake - Advanced Seismic Sonification </div>
+        </div>
+
+        <div class="earthquake-info">
+            <strong>Event ID:</strong> us6000qw60| <strong>Location:</strong> Off the coast of Kamchatka Peninsula, Russia | 
+            <strong>Time:</strong> 23:24:52 UTC | <strong>Depth:</strong> 35 km | <strong>Station:</strong> ANMO (BHZ)
+        </div>
+
+        <div class="data-status" id="dataStatus">
+            <span id="dataStatusText">Ready to fetch seismic data...</span>
+        </div>
+
+        <!-- Peak Meters -->
+        <div class="peak-meters">
+            <div>
+                <div class="peak-label">Output Level</div>
+                <div class="peak-meter">
+                    <div class="peak-fill" id="outputPeakMeter"></div>
+                </div>
+            </div>
+            <div>
+                <div class="peak-label">Voice Count</div>
+                <div class="peak-meter">
+                    <div class="peak-fill" id="voiceCountMeter"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-grid">
+            <!-- ENHANCED SYNTHESIS ENGINE CONTROL -->
+            <div class="control-panel engine-panel">
+                <div class="panel-title">Enhanced Synthesis Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Engine Mix <span class="value-display" id="engineMixValue">Crystalline</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="engineMixFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="engineMix" min="0" max="1" value="0" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Engine Density <span class="value-display" id="engineDensityValue">80/sec</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="engineDensityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="engineDensity" min="1" max="150" value="80">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Cross-Engine Spread <span class="value-display" id="crossSpreadValue">0.8</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="crossSpreadFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="crossSpread" min="0" max="1" value="0.8" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENHANCED VOLUME CONTROL -->
+            <div class="control-panel volume-panel">
+                <div class="panel-title">Enhanced Volume Control</div>
+                <div class="control-group">
+                    <label class="control-label">Master Volume <span class="value-display" id="masterVolumeValue">0.7</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="masterVolumeFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="masterVolume" min="0" max="1.5" value="0.7" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Synthesis Gain <span class="value-display" id="synthesisGainValue">1.0</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="synthesisGainFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="synthesisGain" min="0" max="2.5" value="1.0" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Voice Level <span class="value-display" id="voiceLevelValue">0.6</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="voiceLevelFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="voiceLevel" min="0" max="1.5" value="0.6" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Output Boost <span class="value-display" id="outputBoostValue">3 dB</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="outputBoostFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="outputBoost" min="0" max="12" value="3" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENHANCED NOSTALGIC ENGINE -->
+            <div class="control-panel nostalgic-panel">
+                <div class="panel-title">Enhanced Nostalgic Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Chord Complexity <span class="value-display" id="chordComplexityValue">0.7</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="chordComplexityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="chordComplexity" min="0" max="1" value="0.7" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Scale Mode</label>
+                    <div class="synthesis-mode">
+                        <button class="scale-button active" data-scale="lydian">Lydian</button>
+                        <button class="scale-button" data-scale="pentatonic">Pentatonic</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Detuning <span class="value-display" id="detuneAmountValue">5 cents</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="detuneAmountFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="detuneAmount" min="0" max="20" value="5" step="0.1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Found Sound Level <span class="value-display" id="foundSoundLevelValue">0.2</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="foundSoundLevelFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="foundSoundLevel" min="0" max="1" value="0.2" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Tape Glitch <span class="value-display" id="tapeGlitchValue">0.1</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="tapeGlitchFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="tapeGlitch" min="0" max="1" value="0.1" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Sustain Level <span class="value-display" id="sustainLevelValue">0.3</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="sustainLevelFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="sustainLevel" min="0" max="0.8" value="0.3" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Note Duration <span class="value-display" id="noteDurationValue">2.0s</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="noteDurationFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="noteDuration" min="0.5" max="6" value="2.0" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENHANCED MATERIAL RESONANCE BANK -->
+            <div class="control-panel advanced-panel">
+                <div class="panel-title">Enhanced Material Resonance Bank</div>
+                <div class="control-group">
+                    <label class="control-label">Material Type</label>
+                    <div class="synthesis-mode">
+                        <button class="material-button active" data-material="aluminum">Aluminum</button>
+                        <button class="material-button" data-material="steel">Steel</button>
+                        <button class="material-button" data-material="glass">Glass</button>
+                        <button class="material-button" data-material="wood">Wood</button>
+                        <button class="material-button" data-material="water">Water</button>
+                        <button class="material-button" data-material="custom">Custom</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Material Density <span class="value-display" id="materialDensityValue">0.7</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="materialDensityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="materialDensity" min="0" max="1" value="0.7" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Resonance Size <span class="value-display" id="resonanceSizeValue">0.5</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="resonanceSizeFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="resonanceSize" min="0" max="1" value="0.5" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Impact Force <span class="value-display" id="impactForceValue">0.8</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="impactForceFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="impactForce" min="0" max="2" value="0.8" step="0.01">
+                    </div>
+                </div>
+                
+                <!-- Custom Material Designer -->
+                <div class="material-designer" id="materialDesigner">
+                    <div class="control-group">
+                        <label class="control-label">Custom Frequency <span class="value-display" id="customFreqValue">1000 Hz</span></label>
+                        <div class="slider-wrapper">
+                            <div class="slider-track">
+                                <div class="slider-fill" id="customFreqFill"></div>
+                            </div>
+                            <input type="range" class="control-input" id="customFreq" min="200" max="8000" value="1000">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Custom Decay <span class="value-display" id="customDecayValue">1.0</span></label>
+                        <div class="slider-wrapper">
+                            <div class="slider-track">
+                                <div class="slider-fill" id="customDecayFill"></div>
+                            </div>
+                            <input type="range" class="control-input" id="customDecay" min="0.1" max="5" value="1.0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Custom Hardness <span class="value-display" id="customHardnessValue">0.5</span></label>
+                        <div class="slider-wrapper">
+                            <div class="slider-track">
+                                <div class="slider-fill" id="customHardnessFill"></div>
+                            </div>
+                            <input type="range" class="control-input" id="customHardness" min="0" max="1" value="0.5" step="0.01">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Custom Brightness <span class="value-display" id="customBrightnessValue">0.5</span></label>
+                        <div class="slider-wrapper">
+                            <div class="slider-track">
+                                <div class="slider-fill" id="customBrightnessFill"></div>
+                            </div>
+                            <input type="range" class="control-input" id="customBrightness" min="0" max="1" value="0.5" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CRYSTALLINE GRANULAR ENGINE -->
+            <div class="control-panel advanced-panel">
+                <div class="panel-title">Crystalline Granular Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Crystal Size <span class="value-display" id="crystalSizeValue">25ms</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="crystalSizeFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="crystalSize" min="0.1" max="500" value="25">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Spread <span class="value-display" id="crystallineSpreadValue">0.8</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="crystallineSpreadFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="crystallineSpread" min="0" max="1" value="0.8" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Clarity <span class="value-display" id="crystallineClarityValue">0.6</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="crystallineClarityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="crystallineClarity" min="0" max="1" value="0.6" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Harmonic Sparsity <span class="value-display" id="harmonicSparsityValue">0.7</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="harmonicSparsityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="harmonicSparsity" min="0" max="1" value="0.7" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PITCH & FREQUENCY ENGINE -->
+            <div class="control-panel">
+                <div class="panel-title">Pitch & Frequency Engine</div>
+                <div class="control-group">
+                    <label class="control-label">Frequency Shift <span class="value-display" id="frequencyShiftValue">0 oct</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="frequencyShiftFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="frequencyShift" min="-4" max="4" value="0" step="0.1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Dynamic Tracking <span class="value-display" id="dynamicTrackingValue">0.5</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="dynamicTrackingFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="dynamicTracking" min="0" max="2" value="0.5" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Pitch Slides <span class="value-display" id="pitchSlidesValue">0.3</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="pitchSlidesFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="pitchSlides" min="0" max="1" value="0.3" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Formant Freq <span class="value-display" id="formantFreqValue">800 Hz</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="formantFreqFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="formantFreq" min="200" max="4000" value="800">
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPOSITION CONTROL -->
+            <div class="control-panel composition-panel">
+                <div class="panel-title">Composition Control</div>
+                <div class="control-group">
+                    <label class="control-label">Composition Length <span class="value-display" id="compositionLengthValue">90s</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="compositionLengthFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="compositionLength" min="30" max="300" value="90">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Seismic Phase Focus</label>
+                    <div class="synthesis-mode">
+                        <button class="mode-button active" data-phase="all">All Phases</button>
+                        <button class="mode-button" data-phase="pwave">P-Wave</button>
+                        <button class="mode-button" data-phase="swave">S-Wave</button>
+                        <button class="mode-button" data-phase="surface">Surface</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Export Quality <span class="value-display" id="exportQualityValue">High</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="exportQualityFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="exportQuality" min="1" max="3" value="2" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEMPORAL PROCESSING -->
+            <div class="control-panel">
+                <div class="panel-title">Temporal Processing</div>
+                <div class="control-group">
+                    <label class="control-label">Time Stretch <span class="value-display" id="timeStretchValue">1.00x</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="timeStretchFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="timeStretch" min="0.1" max="10" value="1" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Granular Overlap <span class="value-display" id="granularOverlapValue">0.5</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="granularOverlapFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="granularOverlap" min="0.1" max="0.9" value="0.5" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Reverse Blend <span class="value-display" id="reverseBlendValue">0.0</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="reverseBlendFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="reverseBlend" min="0" max="1" value="0" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Stutter Freq <span class="value-display" id="stutterFreqValue">0 Hz</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="stutterFreqFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="stutterFreq" min="0" max="50" value="0" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BASS & LOW FREQUENCY ENHANCEMENT -->
+            <div class="control-panel bass-panel">
+                <div class="panel-title">Bass & Low Frequency Enhancement</div>
+                <div class="control-group">
+                    <label class="control-label">Bass Boost <span class="value-display" id="bassBoostValue">4 dB</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="bassBoostFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="bassBoost" min="0" max="12" value="4" step="0.1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Sub-Bass Freq <span class="value-display" id="subBassFreqValue">40 Hz</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="subBassFreqFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="subBassFreq" min="20" max="100" value="40">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Low-Mid Boost <span class="value-display" id="lowMidBoostValue">2 dB</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="lowMidBoostFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="lowMidBoost" min="0" max="8" value="2" step="0.1">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Bass Saturation <span class="value-display" id="bassSaturationValue">0.15</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="bassSaturationFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="bassSaturation" min="0" max="0.8" value="0.15" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- GLOBAL PROCESSING -->
+            <div class="control-panel">
+                <div class="panel-title">Global Processing</div>
+                <div class="control-group">
+                    <label class="control-label">Reverb Mix <span class="value-display" id="reverbMixValue">0.4</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="reverbMixFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="reverbMix" min="0" max="1" value="0.4" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Filter Cutoff <span class="value-display" id="filterCutoffValue">15000 Hz</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="filterCutoffFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="filterCutoff" min="100" max="20000" value="15000">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Stereo Width <span class="value-display" id="stereoWidthValue">0.7</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="stereoWidthFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="stereoWidth" min="0" max="1" value="0.7" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Trigger Threshold <span class="value-display" id="triggerThresholdValue">0.05</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="triggerThresholdFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="triggerThreshold" min="0.001" max="0.5" value="0.05" step="0.001">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Delay Time <span class="value-display" id="delayTimeValue">0.5s</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="delayTimeFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="delayTime" min="0.1" max="3" value="0.5" step="0.05">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Delay Feedback <span class="value-display" id="delayFeedbackValue">0.3</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="delayFeedbackFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="delayFeedback" min="0" max="0.75" value="0.3" step="0.01">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Delay Mix <span class="value-display" id="delayMixValue">0.2</span></label>
+                    <div class="slider-wrapper">
+                        <div class="slider-track">
+                            <div class="slider-fill" id="delayMixFill"></div>
+                        </div>
+                        <input type="range" class="control-input" id="delayMix" min="0" max="0.8" value="0.2" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-controls">
+            <div class="preset-controls">
+                <button class="preset-button active" id="crystallinePreset">Preset: Pure Crystalline</button>
+                <button class="preset-button" id="nostalgicPreset">Preset: Pure Nostalgic</button>
+                <button class="preset-button" id="hybridPreset">Preset: Hybrid Blend</button>
+            </div>
+            
+            <button class="main-button" id="startButton">Start Synthesis</button>
+            <button class="main-button stop" id="stopButton">Stop</button>
+            <button class="main-button download" id="renderButton" disabled>Render & Download</button>
+            <p id="statusText" class="status-text">Enhanced Kamchatka Seismic Synthesis Ready - AUDIO FIXED</p>
+            
+            <div class="progress-bar" id="progressContainer" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="visualizer">
+            <canvas id="visualizerCanvas"></canvas>
+            <div class="bass-indicator" id="bassIndicator">Signal: 0%</div>
+            <div class="voice-display" id="voiceCounter">Active Voices: 0</div>
+            <div class="synthesis-display" id="synthesisStatus">Mode: Ready</div>
+            <div class="performance-display" id="performanceMonitor">CPU: 0%</div>
+        </div>
+    </div>
+
+    <script>
+        class EnhancedKamchatkaSeismicSynthesis {
+            constructor() {
+                this.audioContext = null;
+                this.masterGain = null;
+                this.outputGain = null;
+                this.reverbNode = null;
+                this.reverbGain = null;
+                this.dryGain = null;
+                this.filterNode = null;
+                this.highpassFilter = null;
+                this.dcBlocker = null;
+                this.dcBlocker2 = null;
+                this.limiter = null;
+                this.preLimiter = null;
+                this.finalLimiter = null;
+                this.compressor = null;
+                this.saturationNode = null;
+                this.bassEQ = null;
+                this.lowMidEQ = null;
+                this.bassSaturator = null;
+                this.seismicBuffer = null;
+                this.reverseBuffer = null;
+                
+                // Enhanced engine properties
+                this.engineMix = 0; // 0 = pure crystalline, 1 = pure nostalgic
+                this.currentScaleMode = 'lydian';
+                this.customMaterial = null;
+                
+                // FIXED: Found Sound system - Pre-generated buffers
+                this.foundSoundBuffers = [];
+                this.foundSoundAudioBuffers = [];
+                this.foundSoundNodes = new Map();
+                
+                // Material Resonance Convolution
+                this.materialConvolvers = new Map();
+                this.materialIRBuffers = new Map();
+                
+                // Delay components
+                this.delayNode = null;
+                this.delayFeedback = null;
+                this.delayWet = null;
+                this.delayFilter = null;
+                
+                // MiniSEED specific
+                this.rawSeismicData = null;
+                this.seismicDataCache = null;
+                this.dataFetchAttempts = 0;
+                this.maxFetchAttempts = 3;
+                
+                this.isRunning = false;
+                this.isRendering = false;
+                this.animationFrameId = null;
+                this.sequencerTimeoutId = null;
+                
+                this.activeVoices = new Map();
+                this.activeCrystals = new Map();
+                
+                // Enhanced mobile performance detection
+                this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                this.isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                this.isLowEnd = this.detectLowEndDevice();
+                
+                // Adaptive voice limits based on device capability
+                this.maxVoices = this.isLowEnd ? 8 : this.isMobile ? 12 : 24;
+                this.maxCrystals = this.isLowEnd ? 16 : this.isMobile ? 24 : 48;
+                
+                this.voiceIdCounter = 0;
+                this.crystalIdCounter = 0;
+                
+                this.currentMaterial = 'aluminum';
+                this.currentPhase = 'all';
+                
+                this.performanceMonitor = {
+                    lastFrameTime: 0,
+                    frameCount: 0,
+                    cpuUsage: 0,
+                    peakLevel: 0,
+                    clipDetected: false,
+                    clipCounter: 0
+                };
+                
+                this.isHighPerformanceDevice = this.detectDevicePerformance();
+                
+                // Clipping detection
+                this.clipThreshold = 0.95;
+                this.clipHoldTime = 500;
+                this.lastClipTime = 0;
+                
+                this.kamchatkaData = {
+                    eventId: 'us6000qw60',
+                    magnitude: 8.8,
+                    time: '2025-07-29T23:24:52.000Z',
+                    depth: 35,
+                    location: 'Off the coast of Kamchatka Peninsula, Russia',
+                    station: {
+                        network: 'IU',
+                        station: 'ANMO',
+                        location: '00',
+                        channel: 'BHZ'
+                    }
+                };
+
+                this.fftAnalyzer = null;
+                this.spectralData = null;
+                this.timeData = null;
+                
+                this.synthState = {
+                    position: 0,
+                    lastValue: 0,
+                    lastTriggerTime: 0,
+                    crystallinePhase: 0,
+                    signalEnergy: 0,
+                    dcOffset: 0,
+                    lastFoundSoundTrigger: 0,
+                    tapeGlitchState: 0
+                };
+                
+                this.params = this.initializeParameters();
+                this.materials = this.initializeMaterials();
+                this.scales = this.initializeScales();
+                this.presets = this.initializePresets();
+                
+                this.initializeUI();
+                this.setupVisualizer();
+                this.initializeFoundSounds();
+                this.initializeMaterialResonance();
+                
+                // Check for cached data
+                this.checkCachedData();
+                
+                console.log('Enhanced Kamchatka Seismic Synthesis v18 FIXED initialized');
+            }
+
+            detectLowEndDevice() {
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                const memory = navigator.deviceMemory || 4;
+                const cores = navigator.hardwareConcurrency || 4;
+                
+                const isSlowConnection = connection && (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g');
+                return memory < 4 || cores < 4 || isSlowConnection || this.isMobile;
+            }
+
+            detectDevicePerformance() {
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                const memory = navigator.deviceMemory || 4;
+                const cores = navigator.hardwareConcurrency || 4;
+                return memory >= 8 && cores >= 8 && !this.isMobile;
+            }
+
+            initializeParameters() {
+                return {
+                    // Enhanced engine parameters
+                    engineMix: 0, // 0 = crystalline, 1 = nostalgic
+                    engineDensity: 80,
+                    crossSpread: 0.8,
+                    
+                    // Volume controls
+                    masterVolume: 0.7,
+                    synthesisGain: 1.0,
+                    voiceLevel: 0.6,
+                    outputBoost: 3,
+                    
+                    // Nostalgic engine
+                    chordComplexity: 0.7,
+                    detuneAmount: 5,
+                    sustainLevel: 0.3,
+                    noteDuration: 2.0,
+                    harmonicSparsity: 0.7,
+                    foundSoundLevel: 0.2,
+                    tapeGlitch: 0.1,
+                    
+                    // Bass controls
+                    bassBoost: 4,
+                    subBassFreq: 40,
+                    lowMidBoost: 2,
+                    bassSaturation: 0.15,
+                    
+                    // Crystalline engine
+                    crystalSize: 25,
+                    crystallineSpread: 0.8,
+                    crystallineClarity: 0.6,
+                    
+                    // Pitch and frequency
+                    frequencyShift: 0,
+                    dynamicTracking: 0.5,
+                    pitchSlides: 0.3,
+                    formantFreq: 800,
+                    
+                    // Material resonance
+                    materialDensity: 0.7,
+                    resonanceSize: 0.5,
+                    impactForce: 0.8,
+                    
+                    // Custom material parameters
+                    customFreq: 1000,
+                    customDecay: 1.0,
+                    customHardness: 0.5,
+                    customBrightness: 0.5,
+                    
+                    // Composition
+                    compositionLength: 90,
+                    exportQuality: 2,
+                    
+                    // Temporal
+                    timeStretch: 1,
+                    granularOverlap: 0.5,
+                    reverseBlend: 0,
+                    stutterFreq: 0,
+                    
+                    // Global processing
+                    reverbMix: 0.4,
+                    filterCutoff: 15000,
+                    stereoWidth: 0.7,
+                    triggerThreshold: 0.05,
+                    delayTime: 0.5,
+                    delayFeedback: 0.3,
+                    delayMix: 0.2
+                };
+            }
+
+            initializeMaterials() {
+                return {
+                    aluminum: { freq: 2400, decay: 0.8, brightness: 0.9, hardness: 0.7 },
+                    steel: { freq: 1200, decay: 2.5, brightness: 0.6, hardness: 0.9 },
+                    glass: { freq: 4800, decay: 0.1, brightness: 1.0, hardness: 0.1 },
+                    wood: { freq: 800, decay: 0.5, brightness: 0.4, hardness: 0.3 },
+                    water: { freq: 400, decay: 1.5, brightness: 0.7, hardness: 0.2 },
+                    custom: { freq: 1000, decay: 1.0, brightness: 0.5, hardness: 0.5 }
+                };
+            }
+
+            initializeScales() {
+                return {
+                    lydian: {
+                        root: 1.0,
+                        majorThird: 5/4,
+                        perfectFifth: 3/2,
+                        majorSeventh: 15/8,
+                        lydianFourth: Math.sqrt(2)
+                    },
+                    pentatonic: {
+                        root: 1.0,
+                        majorSecond: 9/8,
+                        majorThird: 5/4,
+                        perfectFifth: 3/2,
+                        majorSixth: 5/3
+                    }
+                };
+            }
+
+            initializePresets() {
+                return {
+                    crystalline: {
+                        engineMix: 0,
+                        masterVolume: 0.7, synthesisGain: 1.0, voiceLevel: 0.6, outputBoost: 3,
+                        chordComplexity: 0.7, detuneAmount: 5, sustainLevel: 0.0, noteDuration: 1.0,
+                        harmonicSparsity: 0.2, foundSoundLevel: 0.0, tapeGlitch: 0.0,
+                        bassBoost: 4, subBassFreq: 40, lowMidBoost: 2, bassSaturation: 0.15,
+                        crystalSize: 25, crystallineSpread: 0.8, crystallineClarity: 0.6,
+                        frequencyShift: 0, dynamicTracking: 0.5, pitchSlides: 0.3, formantFreq: 800,
+                        materialDensity: 0.7, resonanceSize: 0.5, impactForce: 0.8,
+                        compositionLength: 90, exportQuality: 2,
+                        timeStretch: 1, granularOverlap: 0.5, reverseBlend: 0, stutterFreq: 0,
+                        reverbMix: 0.4, filterCutoff: 15000, stereoWidth: 0.7, triggerThreshold: 0.05,
+                        delayTime: 0.5, delayFeedback: 0.3, delayMix: 0.2
+                    },
+                    nostalgic: {
+                        engineMix: 1,
+                        masterVolume: 0.8, synthesisGain: 0.9, voiceLevel: 0.7, outputBoost: 4,
+                        chordComplexity: 0.8, detuneAmount: 8, sustainLevel: 0.3, noteDuration: 2.5,
+                        harmonicSparsity: 0.8, foundSoundLevel: 0.3, tapeGlitch: 0.2,
+                        bassBoost: 5, subBassFreq: 60, lowMidBoost: 3, bassSaturation: 0.25,
+                        crystalSize: 45, crystallineSpread: 0.6, crystallineClarity: 0.8,
+                        frequencyShift: -0.2, dynamicTracking: 0.3, pitchSlides: 0.5, formantFreq: 600,
+                        materialDensity: 0.8, resonanceSize: 0.7, impactForce: 0.6,
+                        compositionLength: 120, exportQuality: 2,
+                        timeStretch: 0.8, granularOverlap: 0.6, reverseBlend: 0.1, stutterFreq: 0,
+                        reverbMix: 0.7, filterCutoff: 8000, stereoWidth: 0.9, triggerThreshold: 0.02,
+                        delayTime: 0.8, delayFeedback: 0.5, delayMix: 0.4
+                    },
+                    hybrid: {
+                        engineMix: 0.5,
+                        masterVolume: 0.75, synthesisGain: 0.95, voiceLevel: 0.65, outputBoost: 3.5,
+                        chordComplexity: 0.75, detuneAmount: 6.5, sustainLevel: 0.15, noteDuration: 1.75,
+                        harmonicSparsity: 0.5, foundSoundLevel: 0.15, tapeGlitch: 0.05,
+                        bassBoost: 4.5, subBassFreq: 50, lowMidBoost: 2.5, bassSaturation: 0.2,
+                        crystalSize: 35, crystallineSpread: 0.7, crystallineClarity: 0.7,
+                        frequencyShift: -0.1, dynamicTracking: 0.4, pitchSlides: 0.4, formantFreq: 700,
+                        materialDensity: 0.75, resonanceSize: 0.6, impactForce: 0.7,
+                        compositionLength: 105, exportQuality: 2,
+                        timeStretch: 0.9, granularOverlap: 0.55, reverseBlend: 0.05, stutterFreq: 0,
+                        reverbMix: 0.55, filterCutoff: 11500, stereoWidth: 0.8, triggerThreshold: 0.035,
+                        delayTime: 0.65, delayFeedback: 0.4, delayMix: 0.3
+                    }
+                };
+            }
+
+            // FIXED: Initialize Found Sound system with pre-generated buffers
+            initializeFoundSounds() {
+                this.foundSoundBuffers = this.generateFoundSoundBuffers();
+                this.foundSoundAudioBuffers = [];
+                console.log('Found Sound system initialized with', this.foundSoundBuffers.length, 'raw samples');
+            }
+
+            // FIXED: Pre-create AudioBuffer objects after audio context is available
+            createFoundSoundAudioBuffers() {
+                if (!this.audioContext || this.foundSoundAudioBuffers.length > 0) return;
+                
+                try {
+                    this.foundSoundAudioBuffers = this.foundSoundBuffers.map(sampleData => {
+                        const buffer = this.audioContext.createBuffer(1, sampleData.length, this.audioContext.sampleRate);
+                        buffer.getChannelData(0).set(sampleData);
+                        return buffer;
+                    });
+                    console.log('Pre-created', this.foundSoundAudioBuffers.length, 'AudioBuffer objects for found sounds');
+                } catch (error) {
+                    console.warn('Failed to create found sound audio buffers:', error);
+                }
+            }
+
+            generateFoundSoundBuffers() {
+                const buffers = [];
+                const sampleRate = 44100;
+                
+                const samples = [
+                    { duration: 0.8, type: 'voice_count', pitch: 220 },
+                    { duration: 1.2, type: 'nature_doc', pitch: 180 },
+                    { duration: 0.6, type: 'radio_static', pitch: 150 },
+                    { duration: 1.0, type: 'child_voice', pitch: 300 },
+                    { duration: 0.9, type: 'old_recording', pitch: 200 }
+                ];
+                
+                samples.forEach((sample, index) => {
+                    const length = Math.floor(sample.duration * sampleRate);
+                    const buffer = new Float32Array(length);
+                    
+                    for (let i = 0; i < length; i++) {
+                        const t = i / sampleRate;
+                        let signal = 0;
+                        
+                        switch (sample.type) {
+                            case 'voice_count':
+                                signal = Math.sin(2 * Math.PI * sample.pitch * t) * 
+                                        Math.sin(2 * Math.PI * sample.pitch * 2.5 * t) * 0.3;
+                                signal += Math.sin(2 * Math.PI * sample.pitch * 1.5 * t) * 0.2;
+                                break;
+                            case 'nature_doc':
+                                signal = Math.sin(2 * Math.PI * sample.pitch * t) * 
+                                        (1 + Math.sin(2 * Math.PI * 5 * t) * 0.1);
+                                signal *= Math.sin(2 * Math.PI * sample.pitch * 3 * t) * 0.2 + 0.8;
+                                break;
+                            case 'radio_static':
+                                signal = (Math.random() - 0.5) * 0.4;
+                                signal += Math.sin(2 * Math.PI * sample.pitch * t) * 0.3;
+                                break;
+                            case 'child_voice':
+                                signal = Math.sin(2 * Math.PI * sample.pitch * t * (1 + Math.sin(t * 2) * 0.1));
+                                signal *= Math.sin(2 * Math.PI * sample.pitch * 2 * t) * 0.2 + 0.7;
+                                break;
+                            case 'old_recording':
+                                signal = Math.sin(2 * Math.PI * sample.pitch * t);
+                                signal += (Math.random() - 0.5) * 0.1;
+                                signal *= (1 - t / sample.duration) * 0.8 + 0.2;
+                                break;
+                        }
+                        
+                        const envelope = Math.sin(Math.PI * t / sample.duration);
+                        signal *= envelope;
+                        
+                        if (i > 0) {
+                            signal = signal * 0.7 + buffer[i-1] * 0.3;
+                        }
+                        
+                        buffer[i] = signal * 0.5;
+                    }
+                    
+                    buffers.push(buffer);
+                });
+                
+                return buffers;
+            }
+
+            // FIXED: Optimized found sound triggering using pre-created buffers
+            triggerFoundSound(velocity) {
+                if (this.params.foundSoundLevel === 0 || !this.audioContext || this.foundSoundAudioBuffers.length === 0) return;
+                
+                const now = this.audioContext.currentTime;
+                
+                if (now - this.synthState.lastFoundSoundTrigger < 2.0) return;
+                this.synthState.lastFoundSoundTrigger = now;
+                
+                const sampleIndex = Math.floor(Math.random() * this.foundSoundAudioBuffers.length);
+                const audioBuffer = this.foundSoundAudioBuffers[sampleIndex];
+                
+                if (!audioBuffer) return;
+                
+                try {
+                    const source = this.audioContext.createBufferSource();
+                    const gain = this.audioContext.createGain();
+                    const filter = this.audioContext.createBiquadFilter();
+                    const panner = this.audioContext.createStereoPanner();
+                    
+                    source.buffer = audioBuffer;
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(3000, now);
+                    filter.Q.setValueAtTime(0.8, now);
+                    
+                    panner.pan.value = (Math.random() - 0.5) * 0.8;
+                    
+                    const volume = this.params.foundSoundLevel * velocity * 0.3;
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(volume, now + 0.1);
+                    gain.gain.setTargetAtTime(0, now + audioBuffer.duration - 0.2, 0.1);
+                    
+                    source.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(panner);
+                    panner.connect(this.masterGain);
+                    
+                    source.start(now);
+                    source.stop(now + audioBuffer.duration);
+                    
+                    this.showFoundSoundIndicator();
+                    
+                    console.log('Found sound triggered:', sampleIndex);
+                } catch (error) {
+                    console.warn('Failed to trigger found sound:', error);
+                }
+            }
+
+            showFoundSoundIndicator() {
+                const indicator = document.getElementById('foundSoundIndicator');
+                indicator.classList.add('active');
+                setTimeout(() => {
+                    indicator.classList.remove('active');
+                }, 1500);
+            }
+
+            initializeMaterialResonance() {
+                Object.keys(this.materials).forEach(materialName => {
+                    this.createMaterialImpulseResponse(materialName);
+                });
+                console.log('Material Resonance system initialized with convolution');
+            }
+
+            createMaterialImpulseResponse(materialName) {
+                if (!this.audioContext) return;
+                
+                const material = this.materials[materialName];
+                const sampleRate = this.audioContext.sampleRate;
+                const duration = material.decay * 0.5;
+                const length = Math.floor(duration * sampleRate);
+                
+                const buffer = this.audioContext.createBuffer(2, length, sampleRate);
+                
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = buffer.getChannelData(channel);
+                    
+                    for (let i = 0; i < length; i++) {
+                        const t = i / length;
+                        const decay = Math.pow(1 - t, material.hardness + 0.5);
+                        
+                        let signal = 0;
+                        
+                        switch (materialName) {
+                            case 'aluminum':
+                                signal = Math.sin(2 * Math.PI * material.freq * t) * decay;
+                                signal += Math.sin(2 * Math.PI * material.freq * 1.7 * t) * decay * 0.3;
+                                break;
+                            case 'steel':
+                                signal = Math.sin(2 * Math.PI * material.freq * t) * decay;
+                                signal += Math.sin(2 * Math.PI * material.freq * 2.1 * t) * decay * 0.4;
+                                signal += (Math.random() - 0.5) * decay * 0.1;
+                                break;
+                            case 'glass':
+                                for (let h = 1; h <= 5; h++) {
+                                    signal += Math.sin(2 * Math.PI * material.freq * h * t) * 
+                                             Math.pow(decay, h) * (1/h);
+                                }
+                                break;
+                            case 'wood':
+                                signal = Math.sin(2 * Math.PI * material.freq * t) * decay;
+                                signal *= (1 + Math.sin(2 * Math.PI * material.freq * 0.1 * t) * 0.2);
+                                signal += (Math.random() - 0.5) * decay * 0.2;
+                                break;
+                            case 'water':
+                                signal = Math.sin(2 * Math.PI * material.freq * t * (1 + Math.sin(t * 20) * 0.1)) * decay;
+                                signal += Math.sin(2 * Math.PI * material.freq * 0.5 * t) * decay * 0.5;
+                                signal += (Math.random() - 0.5) * decay * 0.3;
+                                break;
+                            case 'custom':
+                                const freq = this.params.customFreq;
+                                const customDecay = Math.pow(1 - t, this.params.customHardness + 0.5);
+                                signal = Math.sin(2 * Math.PI * freq * t) * customDecay;
+                                signal += Math.sin(2 * Math.PI * freq * 1.6 * t) * customDecay * 0.4;
+                                break;
+                        }
+                        
+                        if (channel === 1) {
+                            signal *= 0.9;
+                            signal = signal * 0.8 + (data[Math.max(0, i-1)] || 0) * 0.2;
+                        }
+                        
+                        data[i] = signal * material.brightness * 0.3;
+                    }
+                }
+                
+                this.materialIRBuffers.set(materialName, buffer);
+            }
+
+            createMaterialConvolver(materialName) {
+                if (!this.audioContext || !this.materialIRBuffers.has(materialName)) return null;
+                
+                try {
+                    const convolver = this.audioContext.createConvolver();
+                    convolver.buffer = this.materialIRBuffers.get(materialName);
+                    convolver.normalize = true;
+                    return convolver;
+                } catch (error) {
+                    console.warn('Failed to create convolver for', materialName, error);
+                    return null;
+                }
+            }
+
+            // FIXED: Enhanced voice creation with proper gain staging
+            createAdvancedVoice(frequency, velocity) {
+                if (!this.audioContext) return null;
+                
+                const totalVoices = this.activeCrystals.size + this.activeVoices.size;
+                const maxTotal = this.maxCrystals + this.maxVoices;
+                
+                if (totalVoices >= maxTotal) {
+                    this.enforceVoiceLimiting();
+                    if (this.activeCrystals.size >= this.maxCrystals) {
+                        return null;
+                    }
+                }
+                
+                const now = this.audioContext.currentTime;
+                const material = this.materials[this.currentMaterial];
+                const crystalId = ++this.crystalIdCounter;
+                
+                const crystal = {
+                    id: crystalId,
+                    oscillators: [],
+                    gains: [],
+                    filters: [],
+                    createdAt: now,
+                    stop: (time) => {
+                        const stopTime = time || now + 0.01;
+                        crystal.gains.forEach(gain => {
+                            if (gain && gain.gain) {
+                                try {
+                                    gain.gain.cancelScheduledValues(stopTime);
+                                    gain.gain.setValueAtTime(gain.gain.value, stopTime);
+                                    gain.gain.linearRampToValueAtTime(0, stopTime + 0.01);
+                                } catch (e) {}
+                            }
+                        });
+                        setTimeout(() => {
+                            crystal.oscillators.forEach(osc => {
+                                try { if (osc) osc.stop(); } catch(e) {}
+                            });
+                            this.activeCrystals.delete(crystalId);
+                        }, 50);
+                    }
+                };
+
+                try {
+                    // Trigger found sound on high-amplitude peaks (nostalgic engine only)
+                    if (this.params.engineMix > 0.3 && velocity > 0.7 && Math.random() < 0.1) {
+                        this.triggerFoundSound(velocity);
+                    }
+                    
+                    // Apply tape glitch effects
+                    if (this.params.engineMix > 0.3 && this.params.tapeGlitch > 0) {
+                        this.applyTapeGlitchEffects(velocity);
+                    }
+                    
+                    // Create blended voice based on engineMix parameter
+                    if (this.params.engineMix === 0) {
+                        // Pure crystalline
+                        this.createCrystallineVoice(crystal, frequency, velocity, material, now);
+                    } else if (this.params.engineMix === 1) {
+                        // Pure nostalgic
+                        this.createNostalgicChord(crystal, frequency, velocity, material, now);
+                    } else {
+                        // Blended mode - create both with level adjustment
+                        const crystallineLevel = 1 - this.params.engineMix;
+                        const nostalgicLevel = this.params.engineMix;
+                        
+                        // Create crystalline component
+                        if (crystallineLevel > 0) {
+                            this.createCrystallineVoice(crystal, frequency, velocity * crystallineLevel, material, now);
+                        }
+                        
+                        // Create nostalgic component
+                        if (nostalgicLevel > 0) {
+                            this.createNostalgicChord(crystal, frequency, velocity * nostalgicLevel, material, now);
+                        }
+                    }
+
+                    this.activeCrystals.set(crystalId, crystal);
+                    return crystal;
+                } catch (error) {
+                    console.warn('Failed to create voice:', error);
+                    return null;
+                }
+            }
+
+            applyTapeGlitchEffects(velocity) {
+                if (!this.audioContext || Math.random() > this.params.tapeGlitch) return;
+                
+                const now = this.audioContext.currentTime;
+                const glitchType = Math.random();
+                
+                if (glitchType < 0.3) {
+                    // Drop-out effect
+                    if (this.masterGain) {
+                        const currentGain = this.masterGain.gain.value;
+                        this.masterGain.gain.setValueAtTime(currentGain, now);
+                        this.masterGain.gain.linearRampToValueAtTime(0.1, now + 0.01);
+                        this.masterGain.gain.linearRampToValueAtTime(currentGain, now + 0.05);
+                    }
+                } else if (glitchType < 0.6) {
+                    // Pitch warp effect
+                    this.synthState.tapeGlitchState = velocity * this.params.tapeGlitch;
+                } else {
+                    // Wow/Flutter spike
+                    if (this.params.engineMix > 0.3) {
+                        setTimeout(() => {
+                            this.synthState.tapeGlitchState = 0;
+                        }, 100);
+                    }
+                }
+            }
+
+            // FIXED: Nostalgic chord with proper gain staging
+            createNostalgicChord(crystal, frequency, velocity, material, now) {
+                const baseFreq = frequency * Math.pow(2, this.params.frequencyShift);
+                const scale = this.scales[this.currentScaleMode];
+                const chordTones = [];
+                
+                chordTones.push({
+                    freq: baseFreq,
+                    interval: 'root',
+                    detune: 0
+                });
+
+                if (Math.random() > this.params.harmonicSparsity * 0.5) {
+                    if (this.currentScaleMode === 'lydian') {
+                        chordTones.push({
+                            freq: baseFreq * scale.majorThird,
+                            interval: 'majorThird',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    } else {
+                        chordTones.push({
+                            freq: baseFreq * scale.majorSecond,
+                            interval: 'majorSecond',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    }
+                }
+
+                if (Math.random() > this.params.harmonicSparsity * 0.3) {
+                    chordTones.push({
+                        freq: baseFreq * scale.perfectFifth,
+                        interval: 'perfectFifth',
+                        detune: (Math.random() - 0.5) * this.params.detuneAmount
+                    });
+                }
+
+                if (Math.random() < this.params.chordComplexity && Math.random() > this.params.harmonicSparsity) {
+                    if (this.currentScaleMode === 'lydian') {
+                        chordTones.push({
+                            freq: baseFreq * scale.lydianFourth,
+                            interval: 'lydianFourth',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    } else {
+                        chordTones.push({
+                            freq: baseFreq * scale.majorSixth,
+                            interval: 'majorSixth',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    }
+                }
+
+                const maxTones = this.isMobile ? 2 : chordTones.length;
+                chordTones.slice(0, maxTones).forEach((tone, index) => {
+                    try {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+                        const panner = this.audioContext.createStereoPanner();
+                        
+                        let outputNode = gain;
+                        const convolver = this.createMaterialConvolver(this.currentMaterial);
+                        if (convolver) {
+                            const convolverGain = this.audioContext.createGain();
+                            convolverGain.gain.value = this.params.materialDensity;
+                            
+                            gain.connect(convolver);
+                            convolver.connect(convolverGain);
+                            outputNode = convolverGain;
+                        }
+
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(tone.freq, now);
+                        if (tone.detune !== 0) {
+                            osc.detune.setValueAtTime(tone.detune, now);
+                        }
+                        
+                        if (this.synthState.tapeGlitchState > 0) {
+                            const pitchWarp = this.synthState.tapeGlitchState * 50;
+                            osc.detune.setValueAtTime(tone.detune + pitchWarp, now);
+                            osc.detune.linearRampToValueAtTime(tone.detune, now + 0.1);
+                        }
+                        
+                        panner.pan.value = (Math.random() - 0.5) * this.params.crossSpread * this.params.stereoWidth;
+                        
+                        const crystalDuration = this.params.crystalSize / 1000;
+                        const attack = crystalDuration * 0.1 * this.params.crystallineClarity;
+                        const decay = crystalDuration * material.decay * this.params.resonanceSize;
+                        
+                        const volumeScale = tone.interval === 'root' ? 1.0 : 
+                                           tone.interval === 'majorThird' ? 0.7 :
+                                           tone.interval === 'perfectFifth' ? 0.6 :
+                                           tone.interval === 'lydianFourth' ? 0.5 : 0.4;
+                        
+                        // FIXED: Proper gain staging - only velocity and material properties
+                        const volume = this.validateParam(
+                            velocity * material.brightness * 0.15 * volumeScale,
+                            0, 0.4
+                        );
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        
+                        const sustainValue = volume * this.params.sustainLevel;
+                        gain.gain.linearRampToValueAtTime(volume, now + attack);
+                        gain.gain.setTargetAtTime(sustainValue, now + attack, decay / 3);
+                        gain.gain.setTargetAtTime(0, now + this.params.noteDuration, 0.5);
+                        
+                        osc.connect(gain);
+                        outputNode.connect(panner);
+                        panner.connect(this.masterGain);
+                        
+                        osc.start(now);
+                        
+                        crystal.oscillators.push(osc);
+                        crystal.gains.push(gain);
+                        if (convolver) crystal.filters.push(convolver);
+                        
+                        setTimeout(() => {
+                            if (this.activeCrystals.has(crystal.id)) {
+                                crystal.stop(this.audioContext.currentTime);
+                            }
+                        }, (this.params.noteDuration + 1) * 1000);
+                    } catch (error) {
+                        console.warn('Failed to create nostalgic chord tone:', error);
+                    }
+                });
+            }
+
+            // FIXED: Crystalline voice with proper gain staging
+            createCrystallineVoice(crystal, frequency, velocity, material, now) {
+                const numPartials = this.isMobile ? 1 : 2;
+                for (let i = 0; i < numPartials; i++) {
+                    try {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+                        const panner = this.audioContext.createStereoPanner();
+
+                        let outputNode = gain;
+                        const convolver = this.createMaterialConvolver(this.currentMaterial);
+                        if (convolver) {
+                            const convolverGain = this.audioContext.createGain();
+                            convolverGain.gain.value = this.params.materialDensity;
+                            
+                            gain.connect(convolver);
+                            convolver.connect(convolverGain);
+                            outputNode = convolverGain;
+                        }
+
+                        const baseFreq = frequency * Math.pow(2, this.params.frequencyShift);
+                        const partialFreq = baseFreq * (i + 1) * 1.2;
+                        
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(partialFreq, now);
+                        
+                        panner.pan.value = (Math.random() - 0.5) * this.params.crystallineSpread * this.params.stereoWidth;
+                        
+                        const crystalDuration = this.params.crystalSize / 1000;
+                        const attack = crystalDuration * 0.1 * this.params.crystallineClarity;
+                        const decay = crystalDuration * material.decay * this.params.resonanceSize;
+                        
+                        // FIXED: Proper gain staging - only velocity and material properties
+                        const volume = this.validateParam(
+                            velocity * material.brightness * 0.2,
+                            0, 0.4
+                        );
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(volume, now + attack);
+                        gain.gain.setTargetAtTime(0, now + attack, decay * 1.5);
+                        
+                        osc.connect(gain);
+                        outputNode.connect(panner);
+                        panner.connect(this.masterGain);
+                        
+                        osc.start(now);
+                        
+                        crystal.oscillators.push(osc);
+                        crystal.gains.push(gain);
+                        if (convolver) crystal.filters.push(convolver);
+                        
+                        setTimeout(() => {
+                            if (this.activeCrystals.has(crystal.id)) {
+                                crystal.stop(this.audioContext.currentTime);
+                            }
+                        }, (attack + (decay * 1.5 * 5) + 0.5) * 1000);
+                    } catch (error) {
+                        console.warn('Failed to create crystalline partial:', error);
+                    }
+                }
+            }
+
+            enforceVoiceLimiting() {
+                const totalVoices = this.activeCrystals.size + this.activeVoices.size;
+                const maxTotal = this.maxCrystals + this.maxVoices;
+                
+                if (totalVoices >= maxTotal) {
+                    const sortedCrystals = Array.from(this.activeCrystals.entries())
+                        .sort((a, b) => a[1].createdAt - b[1].createdAt);
+                    
+                    const voicesToStop = Math.max(1, Math.floor(totalVoices * 0.2));
+                    
+                    for (let i = 0; i < voicesToStop && i < sortedCrystals.length; i++) {
+                        const [id, crystal] = sortedCrystals[i];
+                        crystal.stop(this.audioContext.currentTime);
+                        this.activeCrystals.delete(id);
+                    }
+                    
+                    console.log(`Voice cleanup: removed ${voicesToStop} voices`);
+                }
+            }
+
+            validateParam(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            // MiniSEED Data Fetching and Parsing
+            async fetchKamchatkaSeismicData() {
+                const dataStatus = document.getElementById('dataStatus');
+                const dataStatusText = document.getElementById('dataStatusText');
+                
+                try {
+                    dataStatus.className = 'data-status loading';
+                    dataStatusText.textContent = 'Fetching Kamchatka earthquake data from IRIS...';
+                    
+                    const startTime = this.kamchatkaData.time;
+                    const duration = 60;
+                    const endTime = new Date(new Date(startTime).getTime() + duration * 1000).toISOString();
+                    
+                    const url = `https://service.iris.edu/fdsnws/dataselect/1/query?` +
+                        `net=${this.kamchatkaData.station.network}&` +
+                        `sta=${this.kamchatkaData.station.station}&` +
+                        `loc=${this.kamchatkaData.station.location}&` +
+                        `cha=${this.kamchatkaData.station.channel}&` +
+                        `starttime=${startTime}&` +
+                        `endtime=${endTime}&` +
+                        `format=miniseed`;
+                    
+                    console.log('Fetching miniSEED data from:', url);
+                    
+                    const response = await fetch(url);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const arrayBuffer = await response.arrayBuffer();
+                    
+                    if (arrayBuffer.byteLength === 0) {
+                        throw new Error('No data received from IRIS');
+                    }
+                    
+                    dataStatusText.textContent = 'Parsing miniSEED data...';
+                    
+                    const samples = this.parseMiniSEED(arrayBuffer);
+                    
+                    if (!samples || samples.length === 0) {
+                        throw new Error('Failed to parse miniSEED data');
+                    }
+                    
+                    this.rawSeismicData = samples;
+                    this.cacheSeismicData(samples);
+                    
+                    dataStatus.className = 'data-status success';
+                    dataStatusText.textContent = `Successfully loaded ${samples.length} samples of real Kamchatka earthquake data`;
+                    
+                    setTimeout(() => {
+                        dataStatus.style.display = 'none';
+                    }, 5000);
+                    
+                    return samples;
+                    
+                } catch (error) {
+                    console.error('Error fetching seismic data:', error);
+                    
+                    this.dataFetchAttempts++;
+                    
+                    if (this.dataFetchAttempts < this.maxFetchAttempts) {
+                        dataStatusText.textContent = `Fetch attempt ${this.dataFetchAttempts} failed, retrying...`;
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        return this.fetchKamchatkaSeismicData();
+                    }
+                    
+                    const cachedData = this.getCachedSeismicData();
+                    if (cachedData) {
+                        dataStatus.className = 'data-status success';
+                        dataStatusText.textContent = 'Using cached seismic data';
+                        this.rawSeismicData = cachedData;
+                        
+                        setTimeout(() => {
+                            dataStatus.style.display = 'none';
+                        }, 5000);
+                        
+                        return cachedData;
+                    }
+                    
+                    dataStatus.className = 'data-status error';
+                    dataStatusText.textContent = 'Failed to load seismic data. Using synthetic fallback.';
+                    
+                    return null;
+                }
+            }
+
+            parseMiniSEED(buffer) {
+                try {
+                    const view = new DataView(buffer);
+                    let offset = 48;
+                    
+                    const recordLenCode = view.getUint8(6);
+                    const recordLen = Math.pow(2, recordLenCode);
+                    
+                    const dataOffsetCode = view.getUint16(44, false);
+                    
+                    if (dataOffsetCode === 0) {
+                        offset = 60;
+                    }
+                    
+                    const numSamples = view.getInt16(30, false);
+                    
+                    if (numSamples <= 0 || numSamples > 10000) {
+                        throw new Error(`Invalid number of samples: ${numSamples}`);
+                    }
+                    
+                    if (offset + numSamples * 4 > buffer.byteLength) {
+                        console.warn("Calculated data size exceeds buffer length. Attempting fallback offset.");
+                        offset = 60;
+                        if (offset + numSamples * 4 > buffer.byteLength) {
+                            throw new Error("Cannot reliably determine data start offset or buffer is too small.");
+                        }
+                    }
+                    
+                    const data = new Int32Array(numSamples);
+                    for (let i = 0; i < numSamples; i++) {
+                        data[i] = view.getInt32(offset + i * 4, false);
+                    }
+                    
+                    console.log(`Parsed ${numSamples} samples from miniSEED`);
+                    
+                    return this.normalize(Array.from(data));
+                    
+                } catch (error) {
+                    console.error("Error parsing MiniSEED:", error);
+                    return null;
+                }
+            }
+
+            normalize(data) {
+                if (!data || data.length === 0) return new Float32Array(0);
+                
+                const mean = data.reduce((sum, val) => sum + val, 0) / data.length;
+                const centered = data.map(x => x - mean);
+                
+                const maxVal = centered.reduce((max, val) => Math.max(max, Math.abs(val)), 0);
+                
+                if (maxVal === 0) return new Float32Array(data.length);
+                
+                const factor = 0.95 / maxVal;
+                const normalized = new Float32Array(centered.length);
+                
+                for (let i = 0; i < centered.length; i++) {
+                    normalized[i] = centered[i] * factor;
+                }
+                
+                return normalized;
+            }
+
+            cacheSeismicData(data) {
+                try {
+                    const dataString = JSON.stringify(Array.from(data));
+                    localStorage.setItem('kamchatka_seismic_v18', dataString);
+                    localStorage.setItem('kamchatka_seismic_v18_time', new Date().toISOString());
+                } catch (e) {
+                    console.warn('Failed to cache seismic data:', e);
+                }
+            }
+
+            getCachedSeismicData() {
+                try {
+                    const dataString = localStorage.getItem('kamchatka_seismic_v18');
+                    const cacheTime = localStorage.getItem('kamchatka_seismic_v18_time');
+                    
+                    if (dataString && cacheTime) {
+                        const cacheAge = Date.now() - new Date(cacheTime).getTime();
+                        const maxAge = 7 * 24 * 60 * 60 * 1000;
+                        
+                        if (cacheAge < maxAge) {
+                            const data = JSON.parse(dataString);
+                            return new Float32Array(data);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to retrieve cached data:', e);
+                }
+                return null;
+            }
+
+            checkCachedData() {
+                const cachedData = this.getCachedSeismicData();
+                if (cachedData) {
+                    const dataStatus = document.getElementById('dataStatus');
+                    const dataStatusText = document.getElementById('dataStatusText');
+                    dataStatus.className = 'data-status success';
+                    dataStatusText.textContent = 'Cached seismic data available';
+                    setTimeout(() => {
+                        dataStatus.style.display = 'none';
+                    }, 3000);
+                }
+            }
+
+            generateSyntheticFallback() {
+                console.log('Generating synthetic seismic data as fallback...');
+                const sampleRate = 20;
+                const duration = 60;
+                const samples = new Float32Array(sampleRate * duration);
+                
+                for (let i = 0; i < samples.length; i++) {
+                    const t = i / sampleRate;
+                    let signal = 0;
+                    
+                    if (t >= 5 && t <= 15) {
+                        const pEnv = Math.exp(-(t - 5) / 3);
+                        signal += pEnv * Math.sin(2 * Math.PI * 8 * t) * 0.3;
+                    }
+                    
+                    if (t >= 12 && t <= 30) {
+                        const sEnv = Math.exp(-(t - 12) / 5);
+                        signal += sEnv * Math.sin(2 * Math.PI * 3 * t) * 0.7;
+                    }
+                    
+                    if (t >= 20 && t <= 55) {
+                        const surfEnv = Math.exp(-(t - 20) / 15);
+                        signal += surfEnv * Math.sin(2 * Math.PI * 0.5 * t) * 1.0;
+                    }
+                    
+                    signal += (Math.random() - 0.5) * 0.02;
+                    
+                    samples[i] = signal;
+                }
+                
+                return this.normalize(samples);
+            }
+
+            buildWaveformBuffer(samples) {
+                if (!samples || samples.length === 0 || !this.audioContext) {
+                    console.warn("buildWaveformBuffer received empty or invalid samples.");
+                    const silentBuffer = this.audioContext.createBuffer(1, this.audioContext.sampleRate * 1, this.audioContext.sampleRate);
+                    silentBuffer.getChannelData(0).fill(0);
+                    return silentBuffer;
+                }
+                
+                const targetDuration = 8;
+                let adjustedDuration = targetDuration;
+                
+                if (this.params.timeStretch !== 1) {
+                    adjustedDuration *= this.params.timeStretch;
+                }
+                
+                const targetSamples = Math.floor(adjustedDuration * this.audioContext.sampleRate);
+                const resampled = this.resample(samples, targetSamples);
+                
+                const buffer = this.audioContext.createBuffer(1, resampled.length, this.audioContext.sampleRate);
+                
+                const fadeLength = Math.min(1000, Math.floor(resampled.length * 0.01));
+                for (let i = 0; i < resampled.length; i++) {
+                    let sample = resampled[i];
+                    
+                    if (i < fadeLength) {
+                        sample *= i / fadeLength;
+                    }
+                    
+                    if (i > resampled.length - fadeLength) {
+                        sample *= (resampled.length - i) / fadeLength;
+                    }
+                    
+                    buffer.getChannelData(0)[i] = sample;
+                }
+                
+                return buffer;
+            }
+
+            resample(input, newLen) {
+                if (this.params.timeStretch !== 1.0) {
+                    input = this.applyTimeStretch(input, this.params.timeStretch);
+                }
+                
+                const output = new Float32Array(newLen);
+                
+                if (!input || input.length === 0 || newLen === 0) return output;
+                
+                const factor = (input.length - 1) / (newLen > 1 ? newLen - 1 : 1);
+                
+                if (input.length === 1) {
+                    output.fill(input[0]);
+                    return output;
+                }
+                
+                let filteredInput = input;
+                if (newLen < input.length) {
+                    filteredInput = this.applyLowpassFilter(input, 0.45);
+                }
+                
+                for (let i = 0; i < newLen; i++) {
+                    const idx = i * factor;
+                    const i0 = Math.floor(idx);
+                    const i1 = Math.min(i0 + 1, filteredInput.length - 1);
+                    const frac = idx - i0;
+                    
+                    output[i] = (1 - frac) * filteredInput[i0] + frac * filteredInput[i1];
+                }
+                
+                return output;
+            }
+
+            applyTimeStretch(input, stretchFactor) {
+                if (stretchFactor === 1.0 || !input || input.length === 0) {
+                    return input;
+                }
+                
+                const hopSize = Math.floor(1024 * this.params.granularOverlap);
+                const frameSize = hopSize * 2;
+                const outputLength = Math.floor(input.length * stretchFactor);
+                const output = new Float32Array(outputLength);
+                
+                const window = new Float32Array(frameSize);
+                for (let i = 0; i < frameSize; i++) {
+                    window[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (frameSize - 1));
+                }
+                
+                let inputPos = 0;
+                let outputPos = 0;
+                
+                while (outputPos < outputLength - frameSize) {
+                    const inputFrame = new Float32Array(frameSize);
+                    
+                    for (let i = 0; i < frameSize; i++) {
+                        const sampleIndex = Math.floor(inputPos + i);
+                        if (sampleIndex < input.length) {
+                            inputFrame[i] = input[sampleIndex] * window[i];
+                        }
+                    }
+                    
+                    for (let i = 0; i < frameSize && outputPos + i < outputLength; i++) {
+                        output[outputPos + i] += inputFrame[i];
+                    }
+                    
+                    inputPos += hopSize / stretchFactor;
+                    outputPos += hopSize;
+                }
+                
+                return output;
+            }
+
+            applyLowpassFilter(data, cutoff) {
+                const filtered = new Float32Array(data.length);
+                const a = Math.exp(-2 * Math.PI * cutoff);
+                
+                filtered[0] = data[0];
+                for (let i = 1; i < data.length; i++) {
+                    filtered[i] = data[i] * (1 - a) + filtered[i - 1] * a;
+                }
+                
+                for (let i = data.length - 2; i >= 0; i--) {
+                    filtered[i] = filtered[i] * (1 - a) + filtered[i + 1] * a;
+                }
+                
+                return filtered;
+            }
+
+            _updateStatus(message, type = 'info') {
+                const statusEl = document.getElementById('statusText');
+                if (statusEl) {
+                    statusEl.textContent = message;
+                    statusEl.className = `status-text ${type}`;
+                }
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            }
+
+            _updateProgress(percent) {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                
+                if (percent > 0) {
+                    progressContainer.style.display = 'block';
+                    progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+                } else {
+                    progressContainer.style.display = 'none';
+                }
+            }
+
+            async initAudioContext() {
+                try {
+                    if (!this.audioContext) {
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        this.audioContext = new AudioContextClass();
+                    }
+                    
+                    if (this.isIOS && this.audioContext.state === 'suspended') {
+                        const unlock = () => {
+                            this.audioContext.resume();
+                            document.removeEventListener('touchstart', unlock);
+                            document.removeEventListener('touchend', unlock);
+                        };
+                        document.addEventListener('touchstart', unlock);
+                        document.addEventListener('touchend', unlock);
+                    }
+                    
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                        console.log('Audio context resumed successfully');
+                    }
+                    
+                    if (!this.masterGain) {
+                        this.setupAdvancedAudioGraph();
+                    }
+                    
+                    // FIXED: Create found sound audio buffers after audio context is available
+                    this.createFoundSoundAudioBuffers();
+                } catch (error) {
+                    console.error('Audio context initialization failed:', error);
+                    throw new Error('Failed to initialize audio system. Please check browser compatibility and permissions.');
+                }
+            }
+            
+            // FIXED: Audio graph setup with proper gain staging
+            setupAdvancedAudioGraph() {
+                try {
+                    this.masterGain = this.audioContext.createGain();
+                    // FIXED: Apply synthesis gain and voice level to master gain
+                    const masterGainValue = this.validateParam(
+                        this.params.masterVolume * this.params.synthesisGain * this.params.voiceLevel,
+                        0, 1.5
+                    );
+                    this.masterGain.gain.value = masterGainValue;
+                    
+                    this.outputGain = this.audioContext.createGain();
+                    this.outputGain.gain.value = Math.pow(10, this.validateParam(this.params.outputBoost, 0, 12) / 20);
+                    
+                    this.dcBlocker = this.audioContext.createBiquadFilter();
+                    this.dcBlocker.type = 'highpass';
+                    this.dcBlocker.frequency.value = 20;
+                    this.dcBlocker.Q.value = 0.707;
+                    
+                    this.dcBlocker2 = this.audioContext.createBiquadFilter();
+                    this.dcBlocker2.type = 'highpass';
+                    this.dcBlocker2.frequency.value = 5;
+                    this.dcBlocker2.Q.value = 0.5;
+                    
+                    this.bassEQ = this.audioContext.createBiquadFilter();
+                    this.bassEQ.type = 'lowshelf';
+                    this.bassEQ.frequency.value = this.params.subBassFreq;
+                    this.bassEQ.gain.value = this.params.bassBoost;
+                    this.bassEQ.Q.value = 0.707;
+                    
+                    this.lowMidEQ = this.audioContext.createBiquadFilter();
+                    this.lowMidEQ.type = 'peaking';
+                    this.lowMidEQ.frequency.value = 250;
+                    this.lowMidEQ.Q.value = 0.8;
+                    this.lowMidEQ.gain.value = this.params.lowMidBoost;
+
+                    this.bassSaturator = this.audioContext.createWaveShaper();
+                    this.updateBassSaturationCurve();
+                    
+                    this.compressor = this.audioContext.createDynamicsCompressor();
+                    this.compressor.threshold.value = this.isMobile ? -12 : -18;
+                    this.compressor.knee.value = 2;
+                    this.compressor.ratio.value = this.isMobile ? 8 : 6;
+                    this.compressor.attack.value = 0.003;
+                    this.compressor.release.value = this.isMobile ? 0.05 : 0.1;
+                    
+                    this.saturationNode = this.audioContext.createWaveShaper();
+                    this.updateSaturationCurve();
+
+                    this.highpassFilter = this.audioContext.createBiquadFilter();
+                    this.highpassFilter.type = 'highpass';
+                    this.highpassFilter.frequency.value = 80;
+                    this.highpassFilter.Q.value = 0.707;
+                    
+                    this.filterNode = this.audioContext.createBiquadFilter();
+                    this.filterNode.type = 'lowpass';
+                    this.filterNode.frequency.value = this.params.filterCutoff;
+                    this.filterNode.Q.value = this.isMobile ? 0.5 : 0.707;
+                    
+                    this.preLimiter = this.audioContext.createDynamicsCompressor();
+                    this.preLimiter.threshold.value = -6;
+                    this.preLimiter.knee.value = 0;
+                    this.preLimiter.ratio.value = 12;
+                    this.preLimiter.attack.value = 0.001;
+                    this.preLimiter.release.value = 0.02;
+                    
+                    this.limiter = this.audioContext.createDynamicsCompressor();
+                    this.limiter.threshold.value = -1.0;
+                    this.limiter.knee.value = 0;
+                    this.limiter.ratio.value = 20;
+                    this.limiter.attack.value = 0.0005;
+                    this.limiter.release.value = 0.005;
+                    
+                    this.finalLimiter = this.audioContext.createDynamicsCompressor();
+                    this.finalLimiter.threshold.value = -0.5;
+                    this.finalLimiter.knee.value = 0;
+                    this.finalLimiter.ratio.value = 30;
+                    this.finalLimiter.attack.value = 0.0001;
+                    this.finalLimiter.release.value = 0.001;
+                    
+                    this.reverbNode = this.audioContext.createConvolver();
+                    this.reverbNode.buffer = this.createAdvancedReverbIR();
+                    
+                    this.reverbGain = this.audioContext.createGain();
+                    this.reverbGain.gain.value = this.params.reverbMix;
+                    
+                    this.dryGain = this.audioContext.createGain();
+                    this.dryGain.gain.value = 1 - this.params.reverbMix;
+                    
+                    this.fftAnalyzer = this.audioContext.createAnalyser();
+                    this.fftAnalyzer.fftSize = this.isMobile ? 1024 : 2048;
+                    this.fftAnalyzer.smoothingTimeConstant = 0.8;
+                    this.spectralData = new Float32Array(this.fftAnalyzer.frequencyBinCount);
+                    this.timeData = new Float32Array(this.fftAnalyzer.fftSize);
+
+                    this.delayNode = this.audioContext.createDelay(5.0);
+                    this.delayFeedback = this.audioContext.createGain();
+                    this.delayWet = this.audioContext.createGain();
+                    this.delayFilter = this.audioContext.createBiquadFilter();
+                    
+                    this.delayNode.delayTime.value = this.params.delayTime;
+                    this.delayFeedback.gain.value = this.validateParam(this.params.delayFeedback, 0, 0.75);
+                    this.delayWet.gain.value = this.params.delayMix;
+                    
+                    this.delayFilter.type = 'lowpass';
+                    this.delayFilter.frequency.value = 8000;
+                    this.delayFilter.Q.value = 0.5;
+
+                    // Connect the enhanced audio graph
+                    this.masterGain.connect(this.dcBlocker);
+                    this.dcBlocker.connect(this.dcBlocker2);
+                    this.dcBlocker2.connect(this.bassEQ);
+                    this.bassEQ.connect(this.lowMidEQ);
+                    this.lowMidEQ.connect(this.bassSaturator);
+                    this.bassSaturator.connect(this.saturationNode);
+                    this.saturationNode.connect(this.compressor);
+                    this.compressor.connect(this.highpassFilter);
+                    this.highpassFilter.connect(this.filterNode);
+                    this.filterNode.connect(this.preLimiter);
+                    this.preLimiter.connect(this.limiter);
+                    this.limiter.connect(this.outputGain);
+                    this.outputGain.connect(this.finalLimiter);
+                    
+                    this.finalLimiter.connect(this.dryGain);
+                    this.finalLimiter.connect(this.reverbNode);
+                    
+                    this.finalLimiter.connect(this.delayNode);
+                    this.delayNode.connect(this.delayFilter);
+                    this.delayFilter.connect(this.delayFeedback);
+                    this.delayFeedback.connect(this.delayNode);
+                    this.delayFilter.connect(this.delayWet);
+                    this.delayWet.connect(this.audioContext.destination);
+                    
+                    this.reverbNode.connect(this.reverbGain);
+                    this.dryGain.connect(this.audioContext.destination);
+                    this.reverbGain.connect(this.audioContext.destination);
+                    
+                    this.finalLimiter.connect(this.fftAnalyzer);
+                    
+                    console.log('Enhanced audio graph setup complete with fixed gain staging');
+                } catch (error) {
+                    console.error('Audio graph setup failed:', error);
+                    throw new Error('Failed to set up audio processing chain');
+                }
+            }
+
+            createAdvancedReverbIR() {
+                const sampleRate = this.audioContext ? this.audioContext.sampleRate : 44100;
+                const length = sampleRate * 4;
+                const buffer = this.audioContext.createBuffer(2, length, sampleRate);
+                
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = buffer.getChannelData(channel);
+                    for (let i = 0; i < length; i++) {
+                        const t = i / length;
+                        const decay = Math.pow(1 - t, 3.5);
+                        const metallic = Math.sin(2 * Math.PI * 1200 * t) * Math.exp(-t * 25);
+                        const crystalline = Math.sin(2 * Math.PI * 3600 * t) * Math.exp(-t * 50);
+                        data[i] = ((Math.random() * 2 - 1) + metallic * 0.15 + crystalline * 0.1) * decay * 0.8;
+                    }
+                }
+                
+                return buffer;
+            }
+
+            updateSaturationCurve() {
+                if (!this.saturationNode) return;
+                try {
+                    const amount = 0.2;
+                    const samples = this.isMobile ? 4096 : 8192;
+                    const curve = new Float32Array(samples);
+                    
+                    for (let i = 0; i < samples; i++) {
+                        const x = (i * 2) / samples - 1;
+                        const processed = Math.tanh(x * (1 + amount * 6));
+                        curve[i] = processed + Math.sin(x * Math.PI * 4) * amount * 0.05;
+                    }
+                    
+                    this.saturationNode.curve = curve;
+                } catch (error) {
+                    console.warn('Failed to update saturation curve:', error);
+                }
+            }
+
+            updateBassSaturationCurve() {
+                if (!this.bassSaturator) return;
+                try {
+                    const amount = this.validateParam(this.params.bassSaturation, 0, 0.8);
+                    const k = amount * 60;
+                    const n_samples = this.isMobile ? 4096 : 8192;
+                    const curve = new Float32Array(n_samples);
+                    const deg = Math.PI / 180;
+                    
+                    for (let i = 0; i < n_samples; ++i) {
+                        const x = i * 2 / n_samples - 1;
+                        curve[i] = (3 + k) * x * 15 * deg / (Math.PI + k * Math.abs(x));
+                    }
+                    this.bassSaturator.curve = curve;
+                } catch (error) {
+                    console.warn('Failed to update bass saturation curve:', error);
+                }
+            }
+
+            runAdvancedSequencer() {
+                if (!this.seismicBuffer || !this.isRunning) return;
+                
+                const bufferData = this.params.reverseBlend > 0.5 ? this.reverseBuffer : this.seismicBuffer;
+                if (!bufferData) return;
+                
+                try {
+                    const channelData = bufferData.getChannelData(0);
+                    const position = Math.floor(this.synthState.position) % channelData.length;
+                    const currentValue = channelData[position];
+                    
+                    this.synthState.dcOffset = this.synthState.dcOffset * 0.999 + currentValue * 0.001;
+                    const cleanValue = currentValue - this.synthState.dcOffset;
+                    
+                    const threshold = this.params.triggerThreshold;
+                    const now = this.audioContext.currentTime;
+
+                    this.synthState.signalEnergy = Math.abs(cleanValue) * this.params.dynamicTracking;
+                    
+                    const adaptiveDensity = this.isLowEnd ? 
+                        this.params.engineDensity * 0.5 : 
+                        this.params.engineDensity;
+                    
+                    const densityInterval = 1000 / adaptiveDensity;
+                    const timeSinceLastTrigger = now - this.synthState.lastTriggerTime;
+                    
+                    if (timeSinceLastTrigger >= (densityInterval / 1000)) {
+                        if (this.synthState.signalEnergy > threshold || Math.random() < 0.08) {
+                            const baseFreq = 110 * Math.pow(2, this.params.formantFreq / 1000);
+                            const velocity = Math.min(0.8, this.synthState.signalEnergy / threshold);
+                            
+                            const slidingFreq = baseFreq * (1 + cleanValue * this.params.pitchSlides);
+                            
+                            this.createAdvancedVoice(slidingFreq, velocity);
+                            this.synthState.lastTriggerTime = now;
+                        }
+                    }
+                    
+                    let positionAdvance = this.isLowEnd ? 40 : this.isMobile ? 30 : 20;
+                    
+                    if (this.params.timeStretch !== 1) {
+                        positionAdvance /= this.params.timeStretch;
+                    }
+                    
+                    if (this.params.stutterFreq > 0) {
+                        const stutterPhase = (now * this.params.stutterFreq) % 1;
+                        if (stutterPhase < 0.5) {
+                            positionAdvance *= 0.1;
+                        }
+                    }
+                    
+                    this.synthState.position += positionAdvance;
+                    if (this.synthState.position >= channelData.length) {
+                        this.synthState.position = 0;
+                    }
+                    
+                    this.synthState.crystallinePhase += 0.01;
+                } catch (error) {
+                    console.warn('Sequencer error:', error);
+                }
+
+                if (this.isRunning) {
+                    const interval = this.isLowEnd ? 50 : this.isMobile ? 40 : 20;
+                    this.sequencerTimeoutId = setTimeout(() => this.runAdvancedSequencer(), interval);
+                }
+            }
+
+            // FIXED: Start synthesis without redundant playSeismicWaveform call
+            async startSynthesis() {
+                if (this.isRunning) return;
+                
+                const startButton = document.getElementById('startButton');
+                const renderButton = document.getElementById('renderButton');
+                
+                try {
+                    startButton.disabled = true;
+                    this._updateStatus('Initializing enhanced synthesis...', 'info');
+                    
+                    await this.initAudioContext();
+                    
+                    if (!this.seismicBuffer) {
+                        this._updateStatus('Loading seismic data...', 'info');
+                        
+                        let seismicData = await this.fetchKamchatkaSeismicData();
+                        
+                        if (!seismicData) {
+                            seismicData = this.generateSyntheticFallback();
+                        }
+                        
+                        this.seismicBuffer = this.buildWaveformBuffer(seismicData);
+                        
+                        const reversedData = new Float32Array(seismicData.length);
+                        for (let i = 0; i < seismicData.length; i++) {
+                            reversedData[i] = seismicData[seismicData.length - 1 - i];
+                        }
+                        this.reverseBuffer = this.buildWaveformBuffer(reversedData);
+                    }
+                    
+                    this.isRunning = true;
+                    
+                    // FIXED: Update master gain to include synthesisGain and voiceLevel
+                    if (this.masterGain) {
+                        const masterGainValue = this.validateParam(
+                            this.params.masterVolume * this.params.synthesisGain * this.params.voiceLevel,
+                            0, 1.5
+                        );
+                        this.masterGain.gain.setTargetAtTime(masterGainValue, this.audioContext.currentTime, 0.01);
+                    }
+                    if (this.outputGain) {
+                        this.outputGain.gain.setTargetAtTime(
+                            Math.pow(10, this.validateParam(this.params.outputBoost, 0, 12) / 20), 
+                            this.audioContext.currentTime, 0.01
+                        );
+                    }
+
+                    this.synthState.position = 0;
+                    this.synthState.lastTriggerTime = this.audioContext.currentTime;
+                    this.synthState.crystallinePhase = 0;
+                    this.synthState.signalEnergy = 0;
+                    this.synthState.dcOffset = 0;
+
+                    this.activeCrystals.clear();
+                    this.activeVoices.clear();
+
+                    // FIXED: Only use sequencer for synthesis - removed redundant playSeismicWaveform call
+                    this.runAdvancedSequencer();
+                    this.startVisualizer();
+                    
+                    const engineMode = this.params.engineMix === 0 ? 'Pure Crystalline' :
+                                      this.params.engineMix === 1 ? 'Pure Nostalgic' : 'Hybrid Blend';
+                    this._updateStatus(`Enhanced synthesis active - ${engineMode} - AUDIO FIXED`, 'success');
+                    document.getElementById('synthesisStatus').textContent = `Mode: ${engineMode}`;
+                    
+                    renderButton.disabled = false;
+
+                } catch (error) {
+                    console.error("Synthesis failed:", error);
+                    this._updateStatus(`Error: ${error.message}`, 'error');
+                    this.stopSynthesis();
+                } finally {
+                    startButton.disabled = this.isRunning;
+                }
+            }
+            
+            stopSynthesis() {
+                if (!this.isRunning) return;
+                
+                this.isRunning = false;
+                
+                if (this.sequencerTimeoutId) {
+                    clearTimeout(this.sequencerTimeoutId);
+                    this.sequencerTimeoutId = null;
+                }
+                
+                if (this.masterGain && this.audioContext) {
+                    this.masterGain.gain.setTargetAtTime(0, this.audioContext.currentTime, 0.1);
+                }
+                
+                setTimeout(() => {
+                    this.activeCrystals.forEach(crystal => crystal.stop());
+                    this.activeCrystals.clear();
+                    this.activeVoices.forEach(voice => voice.stop && voice.stop());
+                    this.activeVoices.clear();
+                    
+                    this.performanceMonitor.clipDetected = false;
+                    this.performanceMonitor.clipCounter = 0;
+                    this.updateClippingIndicator(false);
+                }, 200);
+
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+                
+                document.getElementById('startButton').disabled = false;
+                document.getElementById('renderButton').disabled = true;
+                document.getElementById('synthesisStatus').textContent = 'Mode: Ready';
+                this._updateStatus('Synthesis stopped. Enhanced systems ready - AUDIO FIXED.', 'info');
+            }
+
+            updateClippingIndicator(isClipping) {
+                const indicator = document.getElementById('clippingIndicator');
+                if (isClipping) {
+                    indicator.classList.add('active');
+                    this.lastClipTime = Date.now();
+                } else {
+                    if (Date.now() - this.lastClipTime > this.clipHoldTime) {
+                        indicator.classList.remove('active');
+                    }
+                }
+            }
+
+            checkForClipping() {
+                if (!this.fftAnalyzer || !this.timeData) return;
+                
+                this.fftAnalyzer.getFloatTimeDomainData(this.timeData);
+                
+                let peak = 0;
+                for (let i = 0; i < this.timeData.length; i++) {
+                    const abs = Math.abs(this.timeData[i]);
+                    if (abs > peak) peak = abs;
+                }
+                
+                this.performanceMonitor.peakLevel = peak;
+                
+                if (peak >= this.clipThreshold) {
+                    this.performanceMonitor.clipDetected = true;
+                    this.performanceMonitor.clipCounter++;
+                    this.updateClippingIndicator(true);
+                } else {
+                    this.updateClippingIndicator(false);
+                }
+                
+                this.updatePeakMeters(peak);
+            }
+
+            updatePeakMeters(peakLevel) {
+                const outputMeter = document.getElementById('outputPeakMeter');
+                const voiceMeter = document.getElementById('voiceCountMeter');
+                
+                if (outputMeter) {
+                    const peakPercent = Math.min(100, (peakLevel / this.clipThreshold) * 100);
+                    outputMeter.style.width = `${peakPercent}%`;
+                }
+                
+                if (voiceMeter) {
+                    const totalVoices = this.activeCrystals.size + this.activeVoices.size;
+                    const maxTotal = this.maxCrystals + this.maxVoices;
+                    const voicePercent = Math.min(100, (totalVoices / maxTotal) * 100);
+                    voiceMeter.style.width = `${voicePercent}%`;
+                }
+            }
+
+            setupVisualizer() {
+                this.canvas = document.getElementById('visualizerCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                const rect = this.canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
+                this.ctx.scale(dpr, dpr);
+            }
+
+            startVisualizer() {
+                const animate = () => {
+                    if (!this.isRunning && this.activeCrystals.size === 0) {
+                        this.ctx.fillStyle = 'rgba(10, 10, 15, 0.1)';
+                        this.ctx.fillRect(0, 0, this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio);
+                        return;
+                    }
+                    
+                    this.animationFrameId = requestAnimationFrame(animate);
+                    
+                    const now = performance.now();
+                    if (this.performanceMonitor.lastFrameTime > 0) {
+                        const frameDelta = now - this.performanceMonitor.lastFrameTime;
+                        this.performanceMonitor.frameCount++;
+                        if (this.performanceMonitor.frameCount % 60 === 0) {
+                            this.performanceMonitor.cpuUsage = Math.min(100, (frameDelta / 16.67) * 100);
+                        }
+                    }
+                    this.performanceMonitor.lastFrameTime = now;
+                    
+                    this.checkForClipping();
+                    
+                    if (this.fftAnalyzer && this.spectralData) {
+                        this.fftAnalyzer.getFloatTimeDomainData(this.spectralData);
+                    }
+
+                    this.ctx.fillStyle = 'rgba(10, 10, 15, 0.15)';
+                    this.ctx.fillRect(0, 0, this.canvas.width / window.devicePixelRatio, this.canvas.height / window.devicePixelRatio);
+                    
+                    this.ctx.lineWidth = this.isMobile ? 2 : 3;
+                    
+                    const gradient = this.ctx.createLinearGradient(0, 0, this.canvas.width / window.devicePixelRatio, 0);
+                    const intensity = 0.4 + this.synthState.signalEnergy;
+                    const clipBoost = this.performanceMonitor.clipDetected ? 0.3 : 0;
+                    
+                    // Dynamic gradient based on engine mix
+                    const crystColor = `rgba(255, 107, 53, ${intensity + clipBoost})`;
+                    const nostColor = `rgba(205, 133, 63, ${intensity + clipBoost})`;
+                    const midColor = `rgba(247, 147, 30, ${0.6 + this.synthState.signalEnergy * 0.5 + clipBoost})`;
+                    
+                    if (this.params.engineMix < 0.5) {
+                        gradient.addColorStop(0, crystColor);
+                        gradient.addColorStop(0.5, midColor);
+                        gradient.addColorStop(1, `rgba(255, 210, 63, ${intensity + clipBoost})`);
+                    } else {
+                        gradient.addColorStop(0, nostColor);
+                        gradient.addColorStop(0.5, `rgba(218, 165, 32, ${0.6 + this.synthState.signalEnergy * 0.5 + clipBoost})`);
+                        gradient.addColorStop(1, `rgba(255, 218, 185, ${intensity + clipBoost})`);
+                    }
+                    
+                    this.ctx.strokeStyle = gradient;
+                    this.ctx.beginPath();
+                    
+                    const sliceWidth = (this.canvas.width / window.devicePixelRatio) * 1.0 / this.fftAnalyzer.frequencyBinCount;
+                    let x = 0;
+                    
+                    for (let i = 0; i < this.fftAnalyzer.frequencyBinCount; i++) {
+                        const v = this.spectralData[i] * 0.7;
+                        const enhancedV = v + Math.sin(this.synthState.crystallinePhase + i * 0.1) * 0.1 * this.params.crystallineClarity;
+                        const y = (this.canvas.height / window.devicePixelRatio) / 2 + enhancedV * (this.canvas.height / window.devicePixelRatio);
+                        if (i === 0) this.ctx.moveTo(x, y);
+                        else this.ctx.lineTo(x, y);
+                        x += sliceWidth;
+                    }
+                    this.ctx.stroke();
+
+                    const particleIntensity = this.performanceMonitor.clipDetected ? 1.5 : 1.0;
+                    this.ctx.fillStyle = this.params.engineMix < 0.5 ? 
+                        `rgba(247, 147, 30, ${(0.7 + this.synthState.signalEnergy) * particleIntensity})` :
+                        `rgba(218, 165, 32, ${(0.7 + this.synthState.signalEnergy) * particleIntensity})`;
+                    
+                    const baseParticleCount = this.isLowEnd ? 10 : this.isMobile ? 15 : 25;
+                    const particleCount = Math.min(this.activeCrystals.size * 2, baseParticleCount);
+                    for (let i = 0; i < particleCount; i++) {
+                        const x = Math.random() * (this.canvas.width / window.devicePixelRatio);
+                        const y = Math.random() * (this.canvas.height / window.devicePixelRatio);
+                        const size = (1 + Math.random() * 3) * particleIntensity;
+                        this.ctx.fillRect(x, y, size, size);
+                    }
+
+                    this.updateDisplays();
+                };
+                animate();
+            }
+
+            updateDisplays() {
+                const totalActive = this.activeCrystals.size + this.activeVoices.size;
+                const maxTotal = this.maxCrystals + this.maxVoices;
+                const voiceDisplay = document.getElementById('voiceCounter');
+                voiceDisplay.textContent = `Active Voices: ${totalActive}/${maxTotal}`;
+                
+                if (totalActive > maxTotal * 0.8) {
+                    voiceDisplay.style.color = '#ff6b35';
+                } else if (totalActive > maxTotal * 0.6) {
+                    voiceDisplay.style.color = '#ffc107';
+                } else {
+                    voiceDisplay.style.color = '#ffd23f';
+                }
+
+                const signalLevel = (this.synthState.signalEnergy * 100).toFixed(1);
+                const bassIndicator = document.getElementById('bassIndicator');
+                bassIndicator.textContent = `Signal: ${signalLevel}%`;
+                
+                if (this.performanceMonitor.clipDetected) {
+                    bassIndicator.style.color = '#ff4444';
+                    bassIndicator.style.borderColor = 'rgba(255, 68, 68, 0.5)';
+                } else {
+                    bassIndicator.style.color = '#ff6b35';
+                    bassIndicator.style.borderColor = 'rgba(255, 107, 53, 0.3)';
+                }
+                
+                const performanceDisplay = document.getElementById('performanceMonitor');
+                if (performanceDisplay) {
+                    const cpuPercent = this.performanceMonitor.cpuUsage.toFixed(1);
+                    const clipText = this.performanceMonitor.clipCounter > 0 ? ` | Clips: ${this.performanceMonitor.clipCounter}` : '';
+                    performanceDisplay.textContent = `CPU: ${cpuPercent}%${clipText}`;
+                    performanceDisplay.style.color = this.performanceMonitor.cpuUsage > 80 ? '#ff6b35' : '#88c0d0';
+                }
+            }
+
+            loadPreset(presetName) {
+                if (!this.presets[presetName]) {
+                    console.warn(`Preset '${presetName}' not found`);
+                    return;
+                }
+
+                const preset = this.presets[presetName];
+                
+                Object.keys(preset).forEach(param => {
+                    if (this.params.hasOwnProperty(param)) {
+                        this.params[param] = this.validateParam(preset[param], -1000, 1000);
+                        
+                        const slider = document.getElementById(param);
+                        if (slider) {
+                            slider.value = preset[param];
+                            this.updateDisplayAndAudio(param, preset[param], slider);
+                        }
+                    }
+                });
+
+                if (this.audioContext) {
+                    this.updateSaturationCurve();
+                    
+                    if (this.reverbNode) {
+                        this.reverbNode.buffer = this.createAdvancedReverbIR();
+                    }
+                }
+
+                document.querySelectorAll('.preset-button').forEach(btn => btn.classList.remove('active'));
+                const activePresetId = presetName + 'Preset';
+                document.getElementById(activePresetId)?.classList.add('active');
+
+                const displayNames = {
+                    crystalline: 'Pure Crystalline',
+                    nostalgic: 'Pure Nostalgic', 
+                    hybrid: 'Hybrid Blend'
+                };
+                this._updateStatus(`Enhanced preset loaded: ${displayNames[presetName]} - AUDIO FIXED`, 'success');
+                
+                console.log(`Loaded enhanced preset: ${displayNames[presetName]}`);
+            }
+            
+            initializeUI() {
+                const crystallinePreset = document.getElementById('crystallinePreset');
+                const nostalgicPreset = document.getElementById('nostalgicPreset');
+                const hybridPreset = document.getElementById('hybridPreset');
+                
+                if (crystallinePreset) {
+                    crystallinePreset.addEventListener('click', () => {
+                        this.loadPreset('crystalline');
+                    });
+                }
+                
+                if (nostalgicPreset) {
+                    nostalgicPreset.addEventListener('click', () => {
+                        this.loadPreset('nostalgic');
+                    });
+                }
+
+                if (hybridPreset) {
+                    hybridPreset.addEventListener('click', () => {
+                        this.loadPreset('hybrid');
+                    });
+                }
+
+                // Enhanced parameter handling
+                const controls = Object.keys(this.params);
+                controls.forEach(param => {
+                    const slider = document.getElementById(param);
+                    if (slider) {
+                        slider.addEventListener('input', (e) => {
+                            const value = parseFloat(e.target.value);
+                            const validatedValue = this.validateParam(value, parseFloat(slider.min), parseFloat(slider.max));
+                            this.params[param] = validatedValue;
+                            this.updateDisplayAndAudio(param, validatedValue, e.target);
+                        });
+                        
+                        slider.addEventListener('change', (e) => {
+                            const value = parseFloat(e.target.value);
+                            const validatedValue = this.validateParam(value, parseFloat(slider.min), parseFloat(slider.max));
+                            this.smoothParameterChange(param, validatedValue);
+                        });
+                        
+                        this.updateSliderFill(param, this.params[param], slider);
+                        this.updateDisplayAndAudio(param, this.params[param], slider);
+                    }
+                });
+
+                // Scale mode selection
+                document.querySelectorAll('.scale-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.scale-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentScaleMode = e.target.dataset.scale;
+                        console.log('Scale mode changed to:', this.currentScaleMode);
+                    });
+                });
+
+                // Material selection with custom designer
+                document.querySelectorAll('.material-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.material-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentMaterial = e.target.dataset.material;
+                        
+                        // Show/hide custom material designer
+                        const designer = document.getElementById('materialDesigner');
+                        if (this.currentMaterial === 'custom') {
+                            designer.classList.add('active');
+                        } else {
+                            designer.classList.remove('active');
+                        }
+                        
+                        // Update material IR
+                        if (this.currentMaterial === 'custom') {
+                            this.updateCustomMaterial();
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.mode-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.mode-button').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentPhase = e.target.dataset.phase;
+                    });
+                });
+                
+                document.getElementById('startButton').addEventListener('click', () => this.startSynthesis());
+                document.getElementById('stopButton').addEventListener('click', () => this.stopSynthesis());
+                document.getElementById('renderButton').addEventListener('click', () => this.renderAndDownload());
+                
+                console.log('Enhanced UI initialization complete - AUDIO FIXED');
+            }
+
+            updateCustomMaterial() {
+                if (this.currentMaterial === 'custom') {
+                    this.materials.custom = {
+                        freq: this.params.customFreq,
+                        decay: this.params.customDecay,
+                        hardness: this.params.customHardness,
+                        brightness: this.params.customBrightness
+                    };
+                    this.createMaterialImpulseResponse('custom');
+                }
+            }
+
+            // FIXED: Smooth parameter changes with proper gain staging
+            smoothParameterChange(param, targetValue) {
+                if (!this.audioContext || !this.isRunning) return;
+                
+                const smoothingTime = 0.05;
+                const now = this.audioContext.currentTime;
+                
+                switch (param) {
+                    case 'masterVolume':
+                    case 'synthesisGain':
+                    case 'voiceLevel':
+                        // FIXED: Update master gain with all three parameters
+                        if (this.masterGain) {
+                            const masterGainValue = this.validateParam(
+                                this.params.masterVolume * this.params.synthesisGain * this.params.voiceLevel,
+                                0, 1.5
+                            );
+                            this.masterGain.gain.setTargetAtTime(masterGainValue, now, smoothingTime);
+                        }
+                        break;
+                    case 'outputBoost':
+                        if (this.outputGain) {
+                            const gainValue = Math.pow(10, targetValue / 20);
+                            this.outputGain.gain.setTargetAtTime(gainValue, now, smoothingTime);
+                        }
+                        break;
+                    case 'reverbMix':
+                        if (this.reverbGain && this.dryGain) {
+                            this.reverbGain.gain.setTargetAtTime(targetValue, now, smoothingTime);
+                            this.dryGain.gain.setTargetAtTime(1 - targetValue, now, smoothingTime);
+                        }
+                        break;
+                }
+            }
+
+            updateSliderFill(param, value, slider) {
+                const fillElement = document.getElementById(param + 'Fill');
+                if (fillElement && slider) {
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    const percent = ((value - min) / (max - min)) * 100;
+                    fillElement.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+                }
+            }
+
+            updateDisplayAndAudio(param, value, target) {
+                const display = document.getElementById(param + 'Value');
+                if (display) {
+                    let text = value.toFixed(2);
+                    
+                    // Enhanced display formatting
+                    if (param === 'engineMix') {
+                        if (value === 0) text = 'Pure Crystalline';
+                        else if (value === 1) text = 'Pure Nostalgic';
+                        else text = `Hybrid ${(value * 100).toFixed(0)}%`;
+                    }
+                    else if (param === 'engineDensity') text = `${Math.round(value)}/sec`;
+                    else if (param.includes('Size') && param !== 'resonanceSize') text = `${Math.round(value)}ms`;
+                    else if (param.includes('Freq') || param.includes('Cutoff') || param.includes('Formant')) text = `${value.toFixed(0)} Hz`;
+                    else if (param.includes('Shift')) text = `${value.toFixed(1)} oct`;
+                    else if (param.includes('Time') || param === 'delayTime') text = `${value.toFixed(2)}s`;
+                    else if (param === 'timeStretch') text = `${value.toFixed(2)}x`;
+                    else if (param === 'stutterFreq') text = `${value.toFixed(1)} Hz`;
+                    else if (param.includes('Boost')) text = `${value.toFixed(1)} dB`;
+                    else if (param === 'compositionLength') text = `${value.toFixed(0)}s`;
+                    else if (param === 'detuneAmount') text = `${value.toFixed(1)} cents`;
+                    else if (param === 'noteDuration') text = `${value.toFixed(1)}s`;
+                    else if (param === 'exportQuality') {
+                        const qualities = ['Standard', 'High', 'Ultra'];
+                        text = qualities[value - 1] || 'High';
+                    }
+                    
+                    display.textContent = text;
+                }
+                
+                if (target) {
+                    this.updateSliderFill(param, value, target);
+                }
+                
+                this.updateAudioParameters(param, value);
+            }
+            
+            updateAudioParameters(param, value) {
+                if (!this.audioContext) return;
+                const now = this.audioContext.currentTime;
+                const ramp = 0.02;
+
+                try {
+                    switch (param) {
+                        case 'masterVolume': 
+                        case 'synthesisGain':
+                        case 'voiceLevel':
+                            // FIXED: Update master gain with all three parameters
+                            if (this.masterGain) {
+                                const masterGainValue = this.validateParam(
+                                    this.params.masterVolume * this.params.synthesisGain * this.params.voiceLevel,
+                                    0, 1.5
+                                );
+                                this.masterGain.gain.setTargetAtTime(masterGainValue, now, ramp);
+                            }
+                            break;
+                        case 'outputBoost':
+                            if (this.outputGain) {
+                                const safeBoost = this.validateParam(value, 0, 12);
+                                this.outputGain.gain.setTargetAtTime(Math.pow(10, safeBoost / 20), now, ramp);
+                            }
+                            break;
+                        case 'filterCutoff': 
+                            if (this.filterNode) {
+                                const safeCutoff = this.validateParam(value, 100, 20000);
+                                this.filterNode.frequency.setTargetAtTime(safeCutoff, now, ramp);
+                            }
+                            break;
+                        case 'reverbMix':
+                            const validatedMix = this.validateParam(value, 0, 1);
+                            if (this.reverbGain) this.reverbGain.gain.setTargetAtTime(validatedMix, now, ramp);
+                            if (this.dryGain) this.dryGain.gain.setTargetAtTime(1 - validatedMix, now, ramp);
+                            break;
+                        case 'bassBoost':
+                            if (this.bassEQ) {
+                                const safeBoost = this.validateParam(value, 0, 12);
+                                this.bassEQ.gain.setTargetAtTime(safeBoost, now, ramp);
+                            }
+                            break;
+                        case 'subBassFreq':
+                            if (this.bassEQ) {
+                                const safeFreq = this.validateParam(value, 20, 100);
+                                this.bassEQ.frequency.setTargetAtTime(safeFreq, now, ramp);
+                            }
+                            break;
+                        case 'lowMidBoost':
+                            if (this.lowMidEQ) {
+                                const safeBoost = this.validateParam(value, 0, 8);
+                                this.lowMidEQ.gain.setTargetAtTime(safeBoost, now, ramp);
+                            }
+                            break;
+                        case 'bassSaturation':
+                            this.updateBassSaturationCurve();
+                            break;
+                        case 'delayTime':
+                            if (this.delayNode) {
+                                const safeTime = this.validateParam(value, 0.1, 3);
+                                this.delayNode.delayTime.setTargetAtTime(safeTime, now, ramp);
+                            }
+                            break;
+                        case 'delayFeedback':
+                            if (this.delayFeedback) {
+                                const safeFeedback = this.validateParam(value, 0, 0.75);
+                                this.delayFeedback.gain.setTargetAtTime(safeFeedback, now, ramp);
+                            }
+                            break;
+                        case 'delayMix':
+                            if (this.delayWet) {
+                                const safeMix = this.validateParam(value, 0, 0.8);
+                                this.delayWet.gain.setTargetAtTime(safeMix, now, ramp);
+                            }
+                            break;
+                        case 'customFreq':
+                        case 'customDecay':
+                        case 'customHardness':
+                        case 'customBrightness':
+                            this.updateCustomMaterial();
+                            break;
+                        case 'engineDensity':
+                            const maxDensity = this.isLowEnd ? 40 : this.isMobile ? 80 : 150;
+                            if (value > maxDensity) {
+                                this.params[param] = maxDensity;
+                                const slider = document.getElementById(param);
+                                if (slider) {
+                                    slider.value = maxDensity;
+                                    this.updateSliderFill(param, maxDensity, slider);
+                                }
+                                this._updateStatus(`Density limited to ${maxDensity} for device performance`, 'info');
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    console.warn(`Failed to update ${param}:`, error);
+                }
+            }
+
+            async renderAndDownload() {
+                if (this.isRendering) return;
+                
+                try {
+                    this.isRendering = true;
+                    const renderButton = document.getElementById('renderButton');
+                    renderButton.disabled = true;
+                    
+                    this._updateStatus('Preparing enhanced offline rendering...', 'info');
+                    this._updateProgress(5);
+                    
+                    if (!this.rawSeismicData) {
+                        let seismicData = await this.fetchKamchatkaSeismicData();
+                        if (!seismicData) {
+                            seismicData = this.generateSyntheticFallback();
+                        }
+                        this.rawSeismicData = seismicData;
+                    }
+                    
+                    const sampleRate = this.params.exportQuality === 3 ? 96000 : 
+                                      this.params.exportQuality === 2 ? 48000 : 44100;
+                    const duration = this.params.compositionLength;
+                    
+                    const offlineContext = new OfflineAudioContext(2, sampleRate * duration, sampleRate);
+                    
+                    this._updateStatus('Setting up enhanced audio processing...', 'info');
+                    this._updateProgress(15);
+                    
+                    // Create enhanced offline audio graph with proper gain staging
+                    const offlineMaster = offlineContext.createGain();
+                    // FIXED: Apply synthesis gain and voice level to master gain
+                    const masterGainValue = this.validateParam(
+                        this.params.masterVolume * this.params.synthesisGain * this.params.voiceLevel,
+                        0, 1.5
+                    );
+                    offlineMaster.gain.value = masterGainValue;
+                    
+                    const offlineOutput = offlineContext.createGain();
+                    offlineOutput.gain.value = Math.pow(10, this.validateParam(this.params.outputBoost, 0, 12) / 20);
+                    
+                    // Enhanced processing chain
+                    const offlineDCBlocker = offlineContext.createBiquadFilter();
+                    offlineDCBlocker.type = 'highpass';
+                    offlineDCBlocker.frequency.value = 20;
+                    offlineDCBlocker.Q.value = 0.707;
+                    
+                    const offlineHighpass = offlineContext.createBiquadFilter();
+                    offlineHighpass.type = 'highpass';
+                    offlineHighpass.frequency.value = 80;
+                    offlineHighpass.Q.value = 0.707;
+                    
+                    const offlineLowpass = offlineContext.createBiquadFilter();
+                    offlineLowpass.type = 'lowpass';
+                    offlineLowpass.frequency.value = this.validateParam(this.params.filterCutoff, 100, 20000);
+                    offlineLowpass.Q.value = 0.707;
+                    
+                    const offlineBassEQ = offlineContext.createBiquadFilter();
+                    offlineBassEQ.type = 'lowshelf';
+                    offlineBassEQ.frequency.value = this.params.subBassFreq;
+                    offlineBassEQ.gain.value = this.params.bassBoost;
+                    offlineBassEQ.Q.value = 0.707;
+                    
+                    const offlineLimiter = offlineContext.createDynamicsCompressor();
+                    offlineLimiter.threshold.value = -1.0;
+                    offlineLimiter.knee.value = 0;
+                    offlineLimiter.ratio.value = 20;
+                    offlineLimiter.attack.value = 0.0005;
+                    offlineLimiter.release.value = 0.005;
+                    
+                    const offlineReverb = offlineContext.createConvolver();
+                    offlineReverb.buffer = this.createOfflineReverbIR(offlineContext);
+                    
+                    const offlineReverbGain = offlineContext.createGain();
+                    offlineReverbGain.gain.value = this.params.reverbMix;
+                    
+                    const offlineDryGain = offlineContext.createGain();
+                    offlineDryGain.gain.value = 1 - this.params.reverbMix;
+                    
+                    const offlineDelay = offlineContext.createDelay(5.0);
+                    const offlineDelayWet = offlineContext.createGain();
+                    
+                    offlineDelay.delayTime.value = this.params.delayTime;
+                    offlineDelayWet.gain.value = this.params.delayMix;
+                    
+                    // Connect offline graph
+                    offlineMaster.connect(offlineDCBlocker);
+                    offlineDCBlocker.connect(offlineBassEQ);
+                    offlineBassEQ.connect(offlineHighpass);
+                    offlineHighpass.connect(offlineLowpass);
+                    offlineLowpass.connect(offlineLimiter);
+                    offlineLimiter.connect(offlineOutput);
+                    
+                    offlineOutput.connect(offlineDryGain);
+                    offlineOutput.connect(offlineReverb);
+                    offlineOutput.connect(offlineDelay);
+                    
+                    offlineDelay.connect(offlineDelayWet);
+                    offlineDelayWet.connect(offlineContext.destination);
+                    
+                    offlineReverb.connect(offlineReverbGain);
+                    offlineDryGain.connect(offlineContext.destination);
+                    offlineReverbGain.connect(offlineContext.destination);
+                    
+                    this._updateStatus('Generating enhanced composition from seismic data...', 'info');
+                    this._updateProgress(30);
+                    
+                    await this.createEnhancedOfflineComposition(offlineContext, offlineMaster, duration);
+                    
+                    this._updateStatus('Rendering with enhanced processing...', 'info');
+                    this._updateProgress(60);
+                    
+                    const renderedBuffer = await offlineContext.startRendering();
+                    
+                    this._updateStatus('Preparing high-quality download...', 'info');
+                    this._updateProgress(80);
+                    
+                    const wavBlob = this.audioBufferToWav(renderedBuffer);
+                    const url = URL.createObjectURL(wavBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    const engineType = this.params.engineMix === 0 ? 'Crystalline' :
+                                      this.params.engineMix === 1 ? 'Nostalgic' : 'Hybrid';
+                    const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+                    a.download = `Kamchatka_8.8_Enhanced_${engineType}_v18_FIXED_${timestamp}.wav`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    this._updateProgress(100);
+                    this._updateStatus('Enhanced download complete! High-quality WAV file saved - AUDIO FIXED.', 'success');
+                    
+                    setTimeout(() => {
+                        this._updateProgress(0);
+                    }, 3000);
+                    
+                } catch (error) {
+                    console.error('Render failed:', error);
+                    this._updateStatus(`Render error: ${error.message}`, 'error');
+                    this._updateProgress(0);
+                } finally {
+                    this.isRendering = false;
+                    document.getElementById('renderButton').disabled = false;
+                }
+            }
+
+            createOfflineReverbIR(context) {
+                const sampleRate = context.sampleRate;
+                const length = sampleRate * 4;
+                const buffer = context.createBuffer(2, length, sampleRate);
+                
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = buffer.getChannelData(channel);
+                    for (let i = 0; i < length; i++) {
+                        const t = i / length;
+                        const decay = Math.pow(1 - t, 3.5);
+                        const metallic = Math.sin(2 * Math.PI * 1200 * t) * Math.exp(-t * 25);
+                        const crystalline = Math.sin(2 * Math.PI * 3600 * t) * Math.exp(-t * 50);
+                        data[i] = ((Math.random() * 2 - 1) + metallic * 0.15 + crystalline * 0.1) * decay * 0.8;
+                    }
+                }
+                
+                return buffer;
+            }
+
+            async createEnhancedOfflineComposition(context, masterGain, duration) {
+                if (!this.rawSeismicData) return;
+                
+                const material = this.materials[this.currentMaterial];
+                
+                const targetSamples = Math.floor(duration * 44100 / 8);
+                let resampledData = this.resample(this.rawSeismicData, targetSamples);
+                
+                if (this.params.timeStretch !== 1.0) {
+                    resampledData = this.applyTimeStretch(resampledData, this.params.timeStretch);
+                }
+                
+                const baseDensity = this.params.engineDensity;
+                const adaptiveDensity = baseDensity * 0.6;
+                const voiceInterval = 1.0 / adaptiveDensity;
+                
+                let position = 0;
+                let dcOffset = 0;
+                
+                for (let t = 0; t < duration; t += voiceInterval) {
+                    const sampleIdx = Math.floor(position) % resampledData.length;
+                    const currentValue = resampledData[sampleIdx] || 0;
+                    
+                    dcOffset = dcOffset * 0.999 + currentValue * 0.001;
+                    const cleanValue = currentValue - dcOffset;
+                    
+                    if (Math.abs(cleanValue) > this.params.triggerThreshold || Math.random() < 0.05) {
+                        const baseFreq = 110 * Math.pow(2, this.params.formantFreq / 1000);
+                        const velocity = Math.min(0.8, Math.abs(cleanValue) / this.params.triggerThreshold);
+                        const slidingFreq = baseFreq * (1 + cleanValue * this.params.pitchSlides);
+                        
+                        // Create voices based on engine mix
+                        if (this.params.engineMix === 0) {
+                            this.createOfflineCrystallineVoice(context, masterGain, slidingFreq, velocity, material, t);
+                        } else if (this.params.engineMix === 1) {
+                            this.createOfflineNostalgicChord(context, masterGain, slidingFreq, velocity, material, t);
+                        } else {
+                            const crystallineLevel = 1 - this.params.engineMix;
+                            const nostalgicLevel = this.params.engineMix;
+                            
+                            if (crystallineLevel > 0) {
+                                this.createOfflineCrystallineVoice(context, masterGain, slidingFreq, velocity * crystallineLevel, material, t);
+                            }
+                            
+                            if (nostalgicLevel > 0) {
+                                this.createOfflineNostalgicChord(context, masterGain, slidingFreq, velocity * nostalgicLevel, material, t);
+                            }
+                        }
+                    }
+                    
+                    let positionAdvance = 20;
+                    if (this.params.timeStretch !== 1) {
+                        positionAdvance /= this.params.timeStretch;
+                    }
+                    position += positionAdvance;
+                }
+            }
+
+            // FIXED: Offline nostalgic chord with proper gain staging
+            createOfflineNostalgicChord(context, masterGain, frequency, velocity, material, startTime) {
+                const baseFreq = frequency * Math.pow(2, this.params.frequencyShift);
+                const scale = this.scales[this.currentScaleMode];
+                const chordTones = [{freq: baseFreq, interval: 'root', detune: 0}];
+                
+                if (Math.random() > this.params.harmonicSparsity * 0.5) {
+                    if (this.currentScaleMode === 'lydian') {
+                        chordTones.push({
+                            freq: baseFreq * scale.majorThird,
+                            interval: 'majorThird',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    } else {
+                        chordTones.push({
+                            freq: baseFreq * scale.majorSecond,
+                            interval: 'majorSecond',
+                            detune: (Math.random() - 0.5) * this.params.detuneAmount
+                        });
+                    }
+                }
+                
+                chordTones.forEach((tone, index) => {
+                    const osc = context.createOscillator();
+                    const gain = context.createGain();
+                    const panner = context.createStereoPanner();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(tone.freq, startTime);
+                    if (tone.detune !== 0) {
+                        osc.detune.setValueAtTime(tone.detune, startTime);
+                    }
+                    
+                    panner.pan.value = (Math.random() - 0.5) * this.params.crossSpread;
+                    
+                    const volumeScale = tone.interval === 'root' ? 1.0 : 0.7;
+                    // FIXED: Proper gain staging in offline rendering
+                    const volume = velocity * material.brightness * 0.15 * volumeScale;
+                    
+                    const attack = 0.1;
+                    const sustainValue = volume * this.params.sustainLevel;
+                    
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+                    gain.gain.setTargetAtTime(sustainValue, startTime + attack, 0.3);
+                    gain.gain.setTargetAtTime(0, startTime + this.params.noteDuration, 0.5);
+                    
+                    osc.connect(gain);
+                    gain.connect(panner);
+                    panner.connect(masterGain);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + this.params.noteDuration + 1);
+                });
+            }
+
+            // FIXED: Offline crystalline voice with proper gain staging
+            createOfflineCrystallineVoice(context, masterGain, frequency, velocity, material, startTime) {
+                const numPartials = 2;
+                for (let i = 0; i < numPartials; i++) {
+                    const osc = context.createOscillator();
+                    const gain = context.createGain();
+                    const panner = context.createStereoPanner();
+
+                    const baseFreq = frequency * Math.pow(2, this.params.frequencyShift);
+                    const partialFreq = baseFreq * (i + 1) * 1.2;
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(partialFreq, startTime);
+                    
+                    panner.pan.value = (Math.random() - 0.5) * this.params.crystallineSpread;
+                    
+                    const crystalDuration = this.params.crystalSize / 1000;
+                    const attack = crystalDuration * 0.1 * this.params.crystallineClarity;
+                    const decay = crystalDuration * material.decay * this.params.resonanceSize;
+                    
+                    // FIXED: Proper gain staging in offline rendering
+                    const volume = velocity * material.brightness * 0.2;
+                    
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+                    gain.gain.setTargetAtTime(0, startTime + attack, decay * 1.5);
+                    
+                    osc.connect(gain);
+                    gain.connect(panner);
+                    panner.connect(masterGain);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + attack + (decay * 1.5 * 5) + 0.5);
+                }
+            }
+
+            audioBufferToWav(buffer) {
+                const length = buffer.length;
+                const numberOfChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const bytesPerSample = 2;
+                const blockAlign = numberOfChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign;
+                const dataSize = length * blockAlign;
+                const arrayBuffer = new ArrayBuffer(44 + dataSize);
+                const view = new DataView(arrayBuffer);
+                
+                const writeString = (offset, string) => {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                };
+                
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numberOfChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, dataSize, true);
+                
+                let offset = 44;
+                for (let i = 0; i < length; i++) {
+                    for (let channel = 0; channel < numberOfChannels; channel++) {
+                        let sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                        if (Math.abs(sample) > 0.977) {
+                            sample = sample > 0 ? 0.977 : -0.977;
+                        }
+                        view.setInt16(offset, sample * 0x7FFF, true);
+                        offset += 2;
+                    }
+                }
+                
+                return new Blob([arrayBuffer], { type: 'audio/wav' });
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            window.kamchatkaSynth = new EnhancedKamchatkaSeismicSynthesis();
+            console.log('Enhanced Kamchatka Seismic Synthesis v18 FIXED - System ready with proper gain staging and optimized found sounds');
+        });
+    </script>
+</body>
+</html>
