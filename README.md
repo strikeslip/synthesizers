@@ -1,4 +1,4 @@
-# Waveform Audio Synthesizers
+# Seismic Waveform Audio Synthesizers
 
 KAMCHATKA M8.8 SEISMIC SYNTHESIZER<br>
 https://sos.allshookup.org/synths/Kamchatka-8-8-Synth.html<br>
